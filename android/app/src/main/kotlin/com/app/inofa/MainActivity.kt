@@ -1,4 +1,4 @@
-package com.example.inofa
+package com.app.inofa
 
 import android.os.Bundle
 

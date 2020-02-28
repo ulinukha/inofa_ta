@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:inofa/register/sign_in.dart';
 
 class SliderPage extends StatefulWidget{
   SliderPage({Key key}) : super(key: key);
@@ -96,7 +97,14 @@ class _SliderPageState extends State<SliderPage>{
           ),
       )
       : InkWell(
-              onTap: () => print('Get Started Now'),
+              onTap: () {
+                Navigator.push(
+                  context, 
+                  MaterialPageRoute(
+                    builder: (context) => SignIn(),
+                    ),
+                  );
+              },
               child: Container(
                 height: Platform.isIOS ? 70 : 60,
                 color: Colors.blue,
@@ -124,14 +132,19 @@ Widget _buildPageContent({
             child: Image.asset(image),
           ),
           SizedBox(height: 40),
-          Text(
+          Center(
+            child: Text(
             title,
-            style: TextStyle(fontSize: 16, height: 2.0, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 16, height: 1.5, fontWeight: FontWeight.w600),
+          ),
           ),
           SizedBox(height: 10),
-          Text(
+          Center(
+            child: Text(
             body,
-            style: TextStyle(fontSize: 12, height: 2.0),
+            style: TextStyle(fontSize: 12, height: 1.5, color: Colors.black54),
+            textAlign: TextAlign.center,
+          ),
           ),
         ],
       ),

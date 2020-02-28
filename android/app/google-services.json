@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1051653715401",
+    "firebase_url": "https://inova-ta.firebaseio.com",
+    "project_id": "inova-ta",
+    "storage_bucket": "inova-ta.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051653715401:android:21f960d090fea917012418",
+        "android_client_info": {
+          "package_name": "com.app.inofa"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1051653715401-4n4jq41oecvrpnp7bsugtfq2f8lla8v6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.inofa",
+            "certificate_hash": "e5c86fba6eccc877e10fbe1f44077fb15d076f10"
+          }
+        },
+        {
+          "client_id": "1051653715401-g8akadqeo0u2vs74fri4vgamnqed437a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1Dk4baQLz0QshslXVzepo7B5KzcDjt4U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1051653715401-g8akadqeo0u2vs74fri4vgamnqed437a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
