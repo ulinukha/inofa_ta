@@ -8,16 +8,10 @@ class _HomeState extends State<Home>{
   @override
   Widget build(BuildContext context){
     return new Scaffold(
-        appBar: AppBar(
-          title: Text('Home'),
-        ),
-
-        backgroundColor:Colors.blue,
-        body: ListView(
-          children: <Widget>[
-            Text('data')
-          ],
-        ),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text('Home'),
+      ),
     );
   }
 }

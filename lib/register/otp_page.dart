@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_otp/flutter_otp.dart';
-import 'package:inofa/home_page.dart';
+import 'package:inofa/currentTab.dart';
 
 class OtpPage extends StatefulWidget{
   _OtpPageState createState() => _OtpPageState();
@@ -334,8 +334,10 @@ class _OtpScreenState extends State<OtpScreen>{
               splashColor: Colors.transparent,  
               highlightColor: Colors.transparent,
               onPressed: () {
-                Navigator.push(context, 
-                MaterialPageRoute(builder: (context)=> Home()),
+                Navigator.push(context,
+                new MaterialPageRoute(
+                  builder: (context) => new CurrentTab(),
+                ),
                 );
               },
               child: Text(
