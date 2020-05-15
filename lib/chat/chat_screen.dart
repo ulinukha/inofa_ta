@@ -1,176 +1,281 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:inofa/models/message_model.dart';
-import 'package:inofa/models/user_model.dart';
+import 'package:inofa/chat/group_detail.dart';
+import 'package:inofa/models/inovasi_models.dart';
+import 'package:flutter_socket_io/flutter_socket_io.dart';
+import 'package:flutter_socket_io/socket_io_manager.dart';
+import 'package:inofa/custom/appBar.dart';
 
 class ChatScreen extends StatefulWidget {
-  final User user;
-
-  ChatScreen({this.user});
-
+  final ListInovasi inovasis;
+ChatScreen({Key key, this.inovasis}) : super(key: key);
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  _buildMessage(Message message, bool isMe) {
-    final Container msg = Container(
-      margin: isMe
-          ? EdgeInsets.only(
-              top: 8.0,
-              bottom: 8.0,
-              left: 80.0,
-            )
-          : EdgeInsets.only(
-              top: 8.0,
-              bottom: 8.0,
-            ),
-      padding: EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
-      width: MediaQuery.of(context).size.width * 0.75,
-      decoration: BoxDecoration(
-        color: isMe ? Theme.of(context).accentColor : Color(0xFFFFEFEE),
-        borderRadius: isMe
-            ? BorderRadius.only(
-                topLeft: Radius.circular(15.0),
-                bottomLeft: Radius.circular(15.0),
-              )
-            : BorderRadius.only(
-                topRight: Radius.circular(15.0),
-                bottomRight: Radius.circular(15.0),
-              ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            message.time,
-            style: TextStyle(
-              color: Colors.blueGrey,
-              fontSize: 10.0,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 8.0),
-          Text(
-            message.text,
-            style: TextStyle(
-              color: Colors.blueGrey,
-              fontSize: 14.0,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-    if (isMe) {
-      return msg;
-    }
-    return Row(
-      children: <Widget>[
-        msg,
-        IconButton(
-          icon: message.isLiked
-              ? Icon(Icons.favorite)
-              : Icon(Icons.favorite_border),
-          iconSize: 30.0,
-          color: message.isLiked
-              ? Theme.of(context).primaryColor
-              : Colors.blueGrey,
-          onPressed: () {},
-        )
-      ],
-    );
-  }
+  SocketIO socketIO;
+  List<String> messages;
+  TextEditingController textController;
+  ScrollController scrollController;
 
-  _buildMessageComposer() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.0),
-      height: 70.0,
-      color: Colors.white,
-      child: Row(
-        children: <Widget>[
-          IconButton(
-            icon: Icon(Icons.photo),
-            iconSize: 25.0,
-            color: Theme.of(context).primaryColor,
-            onPressed: () {},
-          ),
-          Expanded(
-            child: TextField(
-              textCapitalization: TextCapitalization.sentences,
-              onChanged: (value) {},
-              decoration: InputDecoration.collapsed(
-                hintText: 'Send a message...',
-              ),
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.send),
-            iconSize: 25.0,
-            color: Theme.of(context).primaryColor,
-            onPressed: () {},
-          ),
-        ],
-      ),
+  void initState() {
+    //Initializing the message list
+    messages = List<String>();
+    //Initializing the TextEditingController and ScrollController
+    textController = TextEditingController();
+    scrollController = ScrollController();
+    //Creating the socket
+    socketIO = SocketIOManager().createSocketIO(
+      'https://cobachat.herokuapp.com/',
+      '/',
     );
+    //Call init before doing anything with socket
+    socketIO.init();
+    //Subscribe to an event to listen to
+    socketIO.subscribe('receive_message', (jsonData) {
+      //Convert the JSON data received into a Map
+      Map<String, dynamic> data = json.decode(jsonData);
+      this.setState(() => messages.add(data['message']));
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 600),
+        curve: Curves.ease,
+      );
+    });
+    //Connect to the socket
+    socketIO.connect();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
-      appBar: AppBar(
-        title: Text(
-          widget.user.name,
-          style: TextStyle(
-            fontSize: 28.0,
-            fontWeight: FontWeight.bold,
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        appBar: AppBar(
+          iconTheme: IconThemeData(
+                color: Colors.black,
+              ),
+          backgroundColor: Colors.white,
+          elevation: 4.0,
+          title: Text(widget.inovasis.judul, 
+            style: TextStyle(color: Colors.black, fontSize: 18),
           ),
         ),
-        elevation: 0.0,
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.more_horiz),
-            iconSize: 30.0,
-            color: Colors.white,
-            onPressed: () {},
-          ),
-        ],
+        onTap: () {
+          Navigator.push(
+            context, MaterialPageRoute(builder: (context)=>DetailGroup(inovasis: widget.inovasis),
+            ),
+          );
+        },
       ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+      body: Container(
         child: Column(
           children: <Widget>[
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30.0),
-                    topRight: Radius.circular(30.0),
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30.0),
-                    topRight: Radius.circular(30.0),
-                  ),
-                  child: ListView.builder(
-                    reverse: true,
-                    padding: EdgeInsets.only(top: 15.0),
-                    itemCount: messages.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final Message message = messages[index];
-                      final bool isMe = message.sender.id == currentUser.id;
-                      return _buildMessage(message, isMe);
-                    },
-                  ),
-                ),
-              ),
-            ),
-            _buildMessageComposer(),
+            _onChat(),
+            _inputChatMessage(),
           ],
         ),
       ),
     );
   }
+
+  _chat(){
+    return Expanded(
+          child: Container(
+            padding: EdgeInsets.only(left: 24, right:24),
+        child: ListView.builder(
+          reverse: true,
+          shrinkWrap: true,
+          primary: false,
+          itemCount: 15,
+          itemBuilder: (context, i){
+            return Container(
+              width: 250,
+              margin: EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  Container(
+                    
+                    padding: EdgeInsets.all(10),
+                    decoration: new BoxDecoration(
+                      color: Colors.black12,
+                      borderRadius: new BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                        bottomLeft: Radius.circular(0),
+                        bottomRight: Radius.circular(8)
+                      )
+                    ),
+                    child: new Center(
+                      child: new Text(
+                        "Ekonomi", 
+                        style: TextStyle(
+                          fontSize: 13.0, color: Colors.black
+                        ),
+                      ),
+                    )
+                  ),
+                ],
+              )
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  _onChat(){
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.only(left: 24, right:24, bottom: 15),
+        child: ListView.builder(
+          reverse: true,
+          shrinkWrap: true,
+          primary: false,
+          controller: scrollController,
+          itemCount: messages.length,
+          itemBuilder: (context, i){
+            return Container(
+              width: 250,
+              margin: EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  Container(
+                    
+                    padding: EdgeInsets.all(10),
+                    decoration: new BoxDecoration(
+                      color: Colors.black12,
+                      borderRadius: new BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                        bottomLeft: Radius.circular(0),
+                        bottomRight: Radius.circular(8)
+                      )
+                    ),
+                    child: new Center(
+                      child: new Text(
+                        messages[i], 
+                        style: TextStyle(
+                          fontSize: 13.0, color: Colors.black
+                        ),
+                      ),
+                    )
+                  ),
+                ],
+              )
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  _inputChatMessage() {
+    return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black,
+            ),
+          ],
+        ),
+        child: BottomAppBar(
+          color: Colors.white,
+          shape: CircularNotchedRectangle(),
+          notchMargin: 2,
+          child: Container(
+            margin: EdgeInsets.only(left:24, right:24),
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: 30,
+                  child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      MaterialButton(
+                        padding: EdgeInsets.all(0),
+                        onPressed: () {
+                        },
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Image.asset('images/Send-Blue-2.png', width: 30,)
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 230,
+                  child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        width: 230,
+                        height: 40,
+                        child: TextFormField(
+                          controller: textController,
+                          textCapitalization: TextCapitalization.sentences,
+                          decoration: InputDecoration(
+                            hintText: 'Ketik pesan disini', 
+                            contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0)),
+                          )
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 30,
+                  child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      MaterialButton(
+                        padding: EdgeInsets.all(0),
+                        onPressed: () {
+                          if (textController.text.isNotEmpty) {
+                            //Send the message as JSON data to send_message event
+                            socketIO.sendMessage(
+                                'send_message', json.encode({'message': textController.text}));
+                            //Add the message to the list
+                            this.setState(() => messages.add(textController.text));
+                            textController.text = '';
+                            //Scrolldown the list to show the latest message
+                            scrollController.animateTo(
+                              scrollController.position.maxScrollExtent,
+                              duration: Duration(milliseconds: 600),
+                              curve: Curves.ease,
+                            );
+                          }
+                        },
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Image.asset('images/Send-Blue-2.png', width: 30,)
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ]
+            ),
+          ),
+        ),
+      );
+  }
+
 }

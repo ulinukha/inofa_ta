@@ -1,17 +1,28 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import './number.dart';
+import 'package:inofa/api/api.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class SignIn extends StatefulWidget{
+  SignIn({Key key}) : super(key: key);
   _SignInState createState() => _SignInState();
 }
 
 class _SignInState extends State<SignIn>{
+  
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  bool loading=false;
   Future<FirebaseUser> _handleSignIn() async {
+    setState(() {
+      loading=true;
+    });
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
@@ -22,14 +33,47 @@ class _SignInState extends State<SignIn>{
 
     final FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
     print("signed in " + user.displayName);
+    // daftar(user.uid, user.displayName, user.photoUrl, user.email);
+    Navigator.pushReplacementNamed(context, '/CurrentTab');
     
-    Navigator.push(
-      context,
-      new MaterialPageRoute(
-        builder: (context) => new Number(),
-      ),
-    );
     return user;
+  }
+
+  daftar(String uid, String dispayName, String photoUrl, String email) async {
+    final response = await http.post(BaseUrl.signUp, body: {
+      "id" :uid,
+      "display_name": dispayName,
+      "profile_picture": photoUrl,
+      "email": email,
+    });
+    
+    final data = jsonDecode(response.body);
+    int value = data['value'];
+    String message = data['message'];
+    if (value ==0) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString('email', '$email');
+      setState(() {
+        loading=false;
+      });
+      Navigator.pushReplacementNamed(context, '/Otp');
+      print(message);
+    } else if(value ==  1) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString('email', '$email');
+      setState(() {
+        loading=false;
+      });
+      Navigator.pushReplacementNamed(context, '/Number');
+      print(message);
+      
+    }
+    else{
+      setState(() {
+        loading=false;
+      });
+      print(message);
+    }
   }
 
   signOut() {
@@ -71,7 +115,7 @@ class _SignInState extends State<SignIn>{
           ),
           SizedBox(height: 20),
           Center(
-            child: Material(
+            child:loading?CircularProgressIndicator(): Material(
             color: Colors.white,
             borderRadius: BorderRadius.circular(4.0),
             elevation: 4.0,
@@ -80,11 +124,20 @@ class _SignInState extends State<SignIn>{
               splashColor: Colors.transparent,  
               highlightColor: Colors.transparent,
               onPressed: _handleSignIn,
-              child: Text(
-                'Login With Google',
-                style: TextStyle(
-                   color: Colors.black,
-                 ),),
+
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                Image.asset('images/google.png', width: 20,),
+                SizedBox(width:10),
+                Text(
+                'Masuk menggunakan Google',
+                  style: TextStyle(
+                  color: Colors.black,
+                  ),
+                ),
+                ]
+              )
               ),
             ),
           ),
@@ -104,3 +157,4 @@ class _SignInState extends State<SignIn>{
   }
   
 }
+

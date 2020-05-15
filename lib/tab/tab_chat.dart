@@ -1,12 +1,42 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:inofa/models/message_model.dart';
 import 'package:inofa/chat/chat_screen.dart';
+import 'package:inofa/models/inovasi_models.dart';
+import 'package:http/http.dart' as http;
+import 'package:inofa/api/api.dart';
 
 class Chat extends StatefulWidget{
+  Chat({Key key}) : super(key: key);
   _ChatState createState() => _ChatState();
 }
 
 class _ChatState extends State<Chat>{
+  List<ListInovasi> _listInovasi = [];
+  var loading = false;
+
+  Future<Null> _getListInovasi()async{
+    setState(() {
+      loading = true;
+    });
+    _listInovasi.clear();
+    final response = await http.get(BaseUrl.getInovasi);
+    final data = jsonDecode(response.body);
+    setState(() {
+      for(Map i in data){
+        _listInovasi.add(ListInovasi.fromJson(i));
+        loading = false;
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _getListInovasi();
+  }
+
   @override
   Widget build(BuildContext context){
     return new Scaffold(
@@ -16,134 +46,107 @@ class _ChatState extends State<Chat>{
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         centerTitle: true,
-        elevation: 0.0,
+        elevation: 4,
         title: Text('Chat', style: TextStyle(
           color: Colors.black,
           ),
         ),
       ),
 
-      body: Column(
-        children: <Widget>[
-          
-          RecentChats(),
-        ],
-      ),
-      
-    );
-  }
-}
-
-class RecentChats extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Expanded(
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-          ),
-          child: ClipRRect(
-            
-            child: ListView.builder(
-              itemCount: chats.length,
-              itemBuilder: (BuildContext context, int index) {
-                final Message chat = chats[index];
-                return GestureDetector(
-                  onTap: () 
-                  => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChatScreen(
-                        user: chat.sender,
-                      ),
-                    ),
-                  ),
-                  child: Container(
-                    margin: EdgeInsets.only(top: 2.0),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                    decoration: BoxDecoration(
-                      color: chat.unread ? Color(0xFFFFEFEE) : Colors.white,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            CircleAvatar(
-                              radius: 35.0,
-                              backgroundImage: AssetImage(chat.sender.imageUrl),
-                            ),
-                            SizedBox(width: 10.0),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  chat.sender.name,
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 15.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(height: 5.0),
-                                Container(
-                                  width: MediaQuery.of(context).size.width * 0.45,
-                                  child: Text(
-                                    chat.text,
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,
-                                      fontSize: 15.0,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: <Widget>[
-                            Text(
-                              chat.time,
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 15.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 5.0),
-                            chat.unread
-                                ? Container(
-                                    width: 40.0,
-                                    height: 20.0,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).primaryColor,
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      'NEW',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12.0,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  )
-                                : Text(''),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+      body: loading? 
+      Center(
+        child: CircularProgressIndicator()
+      ):
+      Container(
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              _groupList(),
+              SizedBox(height: 1.0)
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _groupList(){
+    return Container(
+      child: ListView.builder(
+        shrinkWrap: true,
+        primary: false,
+        itemCount: _listInovasi.length,
+        itemBuilder: (context, i){
+          return Container(
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatScreen(inovasis: _listInovasi[i])));
+              },
+              child: Container(
+                width: 400,
+                color: Colors.transparent,
+                child: new Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: new BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black,
+                        offset: Offset(0.0, 1.0),
+                        blurRadius: 1,
+                      )
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget> [
+                      Container(
+                        padding: EdgeInsets.only(left: 24, right: 24),
+                        child: Row(
+                          children: <Widget> [
+                            Material(
+                              child: Image.asset(
+                                  'images/dev.jpg',
+                                  width: 55.0,
+                                  height: 55.0,
+                                  fit: BoxFit.cover,
+                                ),
+                                borderRadius: BorderRadius.all(Radius.circular(55.0)),
+                                clipBehavior: Clip.hardEdge,
+                            ), 
+                              Container(
+                                padding: const EdgeInsets.only(left: 15, right: 15),
+                                width: 235,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget> [
+                                    Container(
+                                      child: new Text(_listInovasi[i].judul,
+                                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                                      ), 
+                                    ),
+                                    SizedBox(height:5),
+                                    Row(
+                                      children: <Widget> [
+                                        Text(_listInovasi[i].pengguna_id.toString(),
+                                          style: TextStyle(fontSize: 13, color: Colors.grey),
+                                        ),
+                                        SizedBox(width: 15),
+                                      ]
+                                    ),
+                                  ]
+                                ),
+                              ),
+                          ]
+                        ),
+                      ),
+                    ]
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
       ),
     );
   }

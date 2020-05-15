@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:inofa/slider_page.dart';
 import 'dart:async';
 
-class MyApp extends StatefulWidget{
-  _MyAppState createState() => _MyAppState();
+class SplachScreen extends StatefulWidget{
+  SplachScreen({Key key}) : super(key: key);
+  _SplachScreenState createState() => _SplachScreenState();
 }
 
-class _MyAppState extends State<MyApp>{
+class _SplachScreenState extends State<SplachScreen>{
 
   @override
   void initState() {
@@ -14,10 +14,8 @@ class _MyAppState extends State<MyApp>{
     Future.delayed(
       Duration(seconds: 3),
       () {
-        Navigator.pushReplacement(context,
-         MaterialPageRoute(builder: (context) => SliderPage(),
-         ),
-         );
+        // Navigator.pushReplacementNamed(context, '/Onboarding');
+        Navigator.pushReplacementNamed(context, '/CurrentTab');
       },
     );
   }

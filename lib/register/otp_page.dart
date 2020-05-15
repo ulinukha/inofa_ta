@@ -1,36 +1,48 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_otp/flutter_otp.dart';
-import 'package:inofa/currentTab.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:inofa/api/api.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class OtpPage extends StatefulWidget{
-  _OtpPageState createState() => _OtpPageState();
-}
+class GetNumber {
+  final String no_telp;
 
-class _OtpPageState extends State<OtpPage>{
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomPadding: false,
-      body: Container(
-        color: Colors.white,
-        child: OtpScreen(),
-      ),
+  GetNumber({this.no_telp});
+
+  factory GetNumber.fromJson(Map<String, dynamic> json) {
+    return GetNumber(
+      no_telp: json['no_telp'],
     );
+  }
+  static Future<GetNumber> getNo() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var email = prefs.getString('email');
+    var response = await http.get(BaseUrl.dataUser+email);
+    var jsonObject = json.decode(response.body);
+    var userData = (jsonObject as Map<String, dynamic>);
+
+    return GetNumber.fromJson(userData);
   }
 }
 
-
 class OtpScreen extends StatefulWidget{
+  OtpScreen ({Key key}): super(key:key);
   _OtpScreenState createState() => _OtpScreenState();
 }
 
 class _OtpScreenState extends State<OtpScreen>{
-  List<String> currentOtp = ["","","",""];
+  List<String> currentOtp = ["","","","","",""];
   TextEditingController otpOneController = TextEditingController();
   TextEditingController otpTwoController = TextEditingController();
   TextEditingController otpThreeController = TextEditingController();
   TextEditingController otpFourController = TextEditingController();
+  TextEditingController otpFiveController = TextEditingController();
+  TextEditingController otpSixController = TextEditingController();
 
   var outlineInputBorder = OutlineInputBorder(
     borderRadius: BorderRadius.circular(10.0),
@@ -39,36 +51,157 @@ class _OtpScreenState extends State<OtpScreen>{
 
   int otpIndex =0;
 
+  GetNumber getNumber=null;
+
+  updateNumber()async{
+    getNumber = await GetNumber.getNo();
+    if(mounted) setState(() {
+      // _onVerifyCode(context, getNumber.no_telp);
+    });
+  }
+
+
+  FirebaseApp app;
+  Future<void> _handleSignOut() async {
+    app = await FirebaseApp.configure(
+      name: 'test1',
+      options: Platform.isAndroid
+          ? FirebaseOptions(
+              googleAppID: '1:1051653715401:android:21f960d090fea917012418',
+              apiKey: 'AIzaSyD1Dk4baQLz0QshslXVzepo7B5KzcDjt4U',
+              projectID: 'inova-ta',
+            )
+          : FirebaseOptions(
+              googleAppID: 'url.googleAppIdIoS',
+              gcmSenderID: 'url.gcmSenderId',
+              apiKey: 'url.apiKeyIoS',
+              projectID: 'url.projectId',
+            ),
+    );
+    _auth = FirebaseAuth.fromApp(app);
+    await _auth.signOut();
+    print('SIGN OUT');
+    _onVerifyCode();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    print('IN OTP PAGE');
+    // updateNumber();
+    // _handleSignOut();
+  }
+
+  bool isCodeSent = false;
+  String _verificationId;
+  FirebaseAuth _auth = FirebaseAuth.instance;
+
+  void _onVerifyCode() async {
+    setState(() {
+      isCodeSent = true;
+    });
+    final PhoneVerificationCompleted verificationCompleted =
+        (AuthCredential phoneAuthCredential) {
+      print(phoneAuthCredential);
+    };
+    final PhoneVerificationFailed verificationFailed =
+        (AuthException authException) {
+      showToast(authException.message, Colors.red);
+      setState(() {
+        isCodeSent = false;
+      });
+    };
+
+    final PhoneCodeSent codeSent =
+        (String verificationId, [int forceResendingToken]) async {
+      _verificationId = verificationId;
+      print('SMS TERKIRIM');
+      setState(() {
+        _verificationId = verificationId;
+      });
+    };
+    final PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout =
+        (String verificationId) {
+      _verificationId = verificationId;
+      setState(() {
+        _verificationId = verificationId;
+      });
+    };
+
+    // TODO: Change country code
+
+    await _auth.verifyPhoneNumber(
+        phoneNumber: "+12252553050",
+        timeout: const Duration(minutes: 2),
+        verificationCompleted: verificationCompleted,
+        verificationFailed: verificationFailed,
+        codeSent: codeSent,
+        codeAutoRetrievalTimeout: codeAutoRetrievalTimeout);
+  }
+
+  void _onFormSubmitted() async {
+    AuthCredential _authCredential = PhoneAuthProvider.getCredential(
+        verificationId: _verificationId, smsCode:stringCode);
+
+    _auth
+        .signInWithCredential(_authCredential)
+        .then((AuthResult value) {
+      if (value.user != null) {
+        print(value.user.phoneNumber);
+        Navigator.pushReplacementNamed(context, '/Home');
+      } else {
+        showToast("Error validating OTP, try again", Colors.red);
+      }
+    });
+  }
+
+  void showToast(message, Color color) {
+    print(message);
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: color,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+  
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: Container(
-              alignment: Alignment(0, 0.5),
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  SizedBox(height: 60.0),
-                  buildTitleText(),
-                  SizedBox(height: 5.0),
-                  buildDescriptionText(),
-                  SizedBox(height: 30.0),
-                  buildPinRow(),
-                  SizedBox(height: 30.0),
-                  buildNumberPad(),
-                ]
-              ),
-          ),
-          ),
-          buildButtonVerification(),
-          SizedBox(height: 10.0),
-          buildSendOtpText(),
-          SizedBox(height: 20.0),
-        ],
-      ),
+      resizeToAvoidBottomPadding: false,
+      body: Container(
+        color: Colors.white,
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                alignment: Alignment(0, 0.5),
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    SizedBox(height: 60.0),
+                    buildTitleText(),
+                    SizedBox(height: 5.0),
+                    buildDescriptionText(),
+                    SizedBox(height: 30.0),
+                    buildPinRow(),
+                    SizedBox(height: 30.0),
+                    buildNumberPad(),
+                  ]
+                ),
+            ),
+            ),
+            buildButtonVerification(),
+            SizedBox(height: 10.0),
+            buildSendOtpText(),
+            SizedBox(height: 20.0),
+          ],
+        ),
+      ) 
     );
   }
 
@@ -192,7 +325,7 @@ class _OtpScreenState extends State<OtpScreen>{
   clearOtp() {
     if(otpIndex == 0)
       otpIndex = 0;
-    else if (otpIndex == 4){
+    else if (otpIndex == 6){
       setOtp(otpIndex, "");
       currentOtp[otpIndex - 1] = "";
       otpIndex--;
@@ -203,20 +336,26 @@ class _OtpScreenState extends State<OtpScreen>{
     }
   }
 
+  String stringCode=  '';
   otpIndexSetup(String text) {
     if(otpIndex == 0)
     otpIndex = 1;
-  else if(otpIndex < 4)
+  else if(otpIndex < 6)
     otpIndex++;
-  setOtp(otpIndex, text);
-  currentOtp[otpIndex-1] = text;
-  String strOtp = "";
-  currentOtp.forEach((e){
-    strOtp += e;
-  });
+    setOtp(otpIndex, text);
+    currentOtp[otpIndex-1] = text;
+    String inputCode = "";
+    currentOtp.forEach((e){
+      inputCode += e;
+    });
+    setState(() {
+      stringCode = inputCode;
+    });
 
-  if(otpIndex == 4)
-  print(strOtp);
+    if(otpIndex == 6){   
+      print('Inpit COde : '+inputCode);
+      print('stringCode: ' + stringCode);
+    }
   }
 
   setOtp(int n, String text) {
@@ -229,6 +368,10 @@ class _OtpScreenState extends State<OtpScreen>{
       otpThreeController.text = text; break;
       case 4:
       otpFourController.text = text; break;
+      case 5:
+      otpFiveController.text = text; break;
+      case 6:
+      otpSixController.text = text; break;
 
     }
   }
@@ -252,6 +395,14 @@ class _OtpScreenState extends State<OtpScreen>{
         PINNumber(
           outlineInputBorder : outlineInputBorder,
           textEditingController: otpFourController,
+          ),
+        PINNumber(
+          outlineInputBorder : outlineInputBorder,
+          textEditingController: otpFiveController,
+          ),
+        PINNumber(
+          outlineInputBorder : outlineInputBorder,
+          textEditingController: otpSixController,
           ),
       ],
     );
@@ -286,8 +437,7 @@ class _OtpScreenState extends State<OtpScreen>{
                 ),
                 textAlign: TextAlign.center,
               ),
-              Text(
-                " +62 123 456 789", 
+              Text(getNumber==null?'':getNumber.no_telp,
                 style: TextStyle(color: Color(0xff2968E2),
                 fontSize: 14.0, 
                 ),
@@ -298,7 +448,6 @@ class _OtpScreenState extends State<OtpScreen>{
         ],
     );
   }
-
 
 
   buildSendOtpText() {
@@ -333,13 +482,7 @@ class _OtpScreenState extends State<OtpScreen>{
               minWidth: 280,
               splashColor: Colors.transparent,  
               highlightColor: Colors.transparent,
-              onPressed: () {
-                Navigator.push(context,
-                new MaterialPageRoute(
-                  builder: (context) => new CurrentTab(),
-                ),
-                );
-              },
+              onPressed: _onFormSubmitted,
               child: Text(
                 'Verifikasi',
                 style: TextStyle(

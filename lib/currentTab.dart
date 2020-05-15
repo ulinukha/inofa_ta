@@ -3,8 +3,10 @@ import './tab/tab_home.dart';
 import './tab/tab_chat.dart';
 import './tab/tab_notification.dart';
 import './tab/tab_profile.dart';
+import 'addIde/add_ide.dart';
 
 class CurrentTab extends StatefulWidget{
+  CurrentTab({Key key}) : super(key: key);
   @override
   _CurrentTabState createState() => new _CurrentTabState();
 }
@@ -19,7 +21,7 @@ class _CurrentTabState extends State<CurrentTab> with SingleTickerProviderStateM
     Profile(),
   ];
 
-Widget currentScreen = Chat();
+Widget currentScreen = Home();
 
 final PageStorageBucket bucket = PageStorageBucket();
 
@@ -30,26 +32,30 @@ final PageStorageBucket bucket = PageStorageBucket();
         child: currentScreen,
         bucket: bucket,
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        backgroundColor: Color(0xff2968E2),
-        onPressed: () {},
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        color: Color(0xffF3F3F3),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black,
+            ),
+          ],
+        ),
+        child: BottomAppBar(
+        color: Colors.white,
         shape: CircularNotchedRectangle(),
         notchMargin: 10,
         child: Container(
           height: 60,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   MaterialButton(
-                    minWidth: 70,
+                    minWidth: 90,
                     onPressed: () {
                       setState(() {
                         currentScreen =
@@ -61,16 +67,19 @@ final PageStorageBucket bucket = PageStorageBucket();
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Image.asset(
-                          'images/Home.png', width: 35,
-                          color: currentTab == 0 ? Color(0xff2968E2) : Color(0xff8DADEA),
-                          
+                          'images/Home.png', width: 27,
+                          color: currentTab == 0 ? Color(0xff2968E2) : Color(0xff707070),
                         ),
+                        SizedBox(height: 5.0,),
+                        Text('Beranda',
+                          style: TextStyle(fontSize: 12.0, color: currentTab == 0 ? Color(0xff2968E2) : Color(0xff707070)),
+                        )
                         
                       ],
                     ),
                   ),
                   MaterialButton(
-                    minWidth: 70,
+                    minWidth: 90,
                     onPressed: () {
                       setState(() {
                         currentScreen =
@@ -82,24 +91,19 @@ final PageStorageBucket bucket = PageStorageBucket();
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Image.asset(
-                          'images/Chat-2.png', width: 35,
-                          color: currentTab == 1 ? Color(0xff2968E2) : Color(0xff8DADEA),
-                          
+                          'images/Chat-2.png', width: 27,
+                          color: currentTab == 1 ? Color(0xff2968E2) : Color(0xff707070),
                         ),
+                        SizedBox(height: 5.0,),
+                        Text('Pesan',
+                          style: TextStyle(fontSize: 12.0, color: currentTab == 1 ? Color(0xff2968E2) : Color(0xff707070)),
+                        )
                         
                       ],
                     ),
-                  )
-                ],
-              ),
-
-              // Right Tab bar icons
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
+                  ),
                   MaterialButton(
-                    minWidth: 70,
+                    minWidth: 90,
                     onPressed: () {
                       setState(() {
                         currentScreen =
@@ -111,16 +115,19 @@ final PageStorageBucket bucket = PageStorageBucket();
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Image.asset(
-                          'images/Notification.png', width: 35,
-                          color: currentTab == 2 ? Color(0xff2968E2) : Color(0xff8DADEA),
-                          
+                          'images/Notification.png', width: 27,
+                          color: currentTab == 2 ? Color(0xff2968E2) : Color(0xff707070),
                         ),
+                        SizedBox(height: 5.0,),
+                        Text('Notifikasi',
+                          style: TextStyle(fontSize: 12.0, color: currentTab == 2 ? Color(0xff2968E2) : Color(0xff707070)),
+                        )
                         
                       ],
                     ),
                   ),
                   MaterialButton(
-                    minWidth: 70,
+                    minWidth: 90,
                     onPressed: () {
                       setState(() {
                         currentScreen =
@@ -132,19 +139,24 @@ final PageStorageBucket bucket = PageStorageBucket();
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Image.asset(
-                          'images/Profile.png', width: 35,
-                          color: currentTab == 3 ? Color(0xff2968E2) : Color(0xff8DADEA),
+                          'images/Profile.png', width: 27,
+                          color: currentTab == 3 ? Color(0xff2968E2) : Color(0xff707070),
                           
                         ),
+                        SizedBox(height: 5.0,),
+                        Text('Akun',
+                          style: TextStyle(fontSize: 12.0, color: currentTab == 3 ? Color(0xff2968E2) : Color(0xff707070)),
+                        )
                       ],
                     ),
                   )
                 ],
-              )
+              ),
 
             ],
           ),
         ),
+      ),
       ),
 
     );

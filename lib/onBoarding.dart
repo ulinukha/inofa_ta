@@ -1,14 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:inofa/register/sign_in.dart';
 
-class SliderPage extends StatefulWidget{
-  SliderPage({Key key}) : super(key: key);
+class OnBoarding extends StatefulWidget{
+  OnBoarding({Key key}) : super(key: key);
 
-  _SliderPageState createState() => _SliderPageState();
+  _OnBoardingState createState() => _OnBoardingState();
 }
 
-class _SliderPageState extends State<SliderPage>{
+class _OnBoardingState extends State<OnBoarding>{
   final int _totalPages = 3;
   final PageController _pageController = PageController(initialPage:0);
   int _currentPage = 0;
@@ -98,12 +97,7 @@ class _SliderPageState extends State<SliderPage>{
       )
       : InkWell(
               onTap: () {
-                Navigator.push(
-                  context, 
-                  MaterialPageRoute(
-                    builder: (context) => SignIn(),
-                    ),
-                  );
+                Navigator.pushReplacementNamed(context, '/SignIn');
               },
               child: Container(
                 height: Platform.isIOS ? 70 : 60,
