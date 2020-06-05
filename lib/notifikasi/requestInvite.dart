@@ -1,13 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:inofa/tab/tab_profile.dart';
+import 'package:inofa/api/api.dart';
+import 'package:inofa/models/invitation_models.dart';
+import 'package:inofa/models/loginUser_models.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class RequestInvite extends StatefulWidget {
-  RequestInvite ({Key key}) : super(key : key);
+  final ListInvitation dataInovasi;
+  final LoginUser dataUser;
+  RequestInvite ({Key key, this.dataInovasi, this.dataUser}) : super(key : key);
   @override
   _RequestInviteState createState() => _RequestInviteState();
 }
 
 class _RequestInviteState extends State<RequestInvite> {
+
+  accept()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    final response = await http.post(BaseUrl.acceptApi+widget.dataInovasi.inovasi_id.toString(), 
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    },
+    body: {
+      "pengguna_id" : widget.dataInovasi.pengguna_id.toString(),
+      "inovasi_id" : widget.dataInovasi.inovasi_id.toString()
+    });
+    Navigator.pushReplacementNamed(context, '/CurrentTab');
+  }
+  
+  @override
+  void initState() {
+    super.initState();
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,42 +54,12 @@ class _RequestInviteState extends State<RequestInvite> {
         padding: EdgeInsets.symmetric(horizontal: 24),
         child: ListView(
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                Container(
-                  margin: const EdgeInsets.only(right: 10.0),
-                  child: CircleAvatar(
-                    radius: 15,
-                    backgroundImage: AssetImage('images/dev.jpg'),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(right: 10.0),
-                  child: Text(
-                    'Samantha Ariva',
-                    style: TextStyle(
-                      fontSize: 12.0,
-                      color: Colors.black
-                    ),),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(right: 10.0),
-                  child: Text(
-                    '02/03/2020',
-                    style: TextStyle(
-                      fontSize: 12.0,
-                      color: Colors.black
-                    ),),
-                ),
-              ],
-            ),
-            SizedBox(height: 20.0),
             Container(
               child: Stack(
                 children: <Widget>[
                   Material(
-                    child: Image.asset(
-                        'images/dev.jpg',
+                    child: Image.network(
+                        'http://192.168.20.102:8000/'+widget.dataInovasi.thumbnail,
                         width: 400.0,
                         height: 150.0,
                         fit: BoxFit.cover,
@@ -76,9 +72,18 @@ class _RequestInviteState extends State<RequestInvite> {
             ),
             SizedBox(height: 20.0),
             Container(
-              child: Text(
-                "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
-              , style: TextStyle(
+              child: Text(widget.dataInovasi.tagline, 
+                style: TextStyle(
+                  fontSize: 15.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold
+                ),
+              ),
+            ),
+            SizedBox(height: 10.0),
+            Container(
+              child: Text(widget.dataInovasi.description, 
+                style: TextStyle(
                 fontSize: 13.0,
                 color: Colors.black
               ),),
@@ -96,7 +101,7 @@ class _RequestInviteState extends State<RequestInvite> {
                     ),
                     child: new Center(
                       child: new Text(
-                        "Ekonomi", 
+                        widget.dataInovasi.kategori.toString(), 
                         style: TextStyle(
                           fontSize: 10.0, color: Colors.white
                         ),
@@ -104,6 +109,10 @@ class _RequestInviteState extends State<RequestInvite> {
                     )
                   ),
                 ),
+                SizedBox(width: 15),
+                Image.asset('images/Group.png', width: 30,),
+                SizedBox(width: 5),
+                Text(widget.dataInovasi.jumlah.toString()),
               ],
             )
           ],
@@ -146,7 +155,9 @@ class _RequestInviteState extends State<RequestInvite> {
                       shape: new RoundedRectangleBorder(
                         borderRadius: new BorderRadius.circular(8.0),
                         side: BorderSide(color: Color(0xff2968E2))),
-                      onPressed: () {},
+                      onPressed: () {
+                        accept();
+                      },
                       color: Color(0xff2968E2),
                       textColor: Colors.white,
                       child: Text("Gabung".toUpperCase(),

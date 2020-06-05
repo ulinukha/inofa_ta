@@ -1,15 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:inofa/models/inovasi_models.dart';
+import 'package:inofa/models/loginUser_models.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'package:inofa/api/api.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class IdeDetail extends StatefulWidget {
+  final LoginUser userData;
   final ListInovasi inovasis;
-  IdeDetail ({Key key, this.inovasis }) : super (key: key);
+  IdeDetail ({Key key, this.inovasis, this.userData}) : super (key: key);
   @override
   _IdeDetailState createState() => _IdeDetailState();
 }
 
 class _IdeDetailState extends State<IdeDetail> {
+
+  joinInovasi()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    final response = await http.post(BaseUrl.joinInovasiApi+widget.userData.user.id_pengguna.toString(), 
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    },
+    body: {
+      "pengguna_id" : widget.userData.user.id_pengguna.toString(),
+      "inovasi_id" : widget.inovasis.id_inovasi.toString()
+    });
+    Navigator.pushReplacementNamed(context, '/CurrentTab');
+  }
 
   final dateFormat = new DateFormat('dd-MM-yyyy');
   
@@ -41,14 +60,14 @@ class _IdeDetailState extends State<IdeDetail> {
                 Container(
                   margin: const EdgeInsets.only(right: 10.0),
                   child: CircleAvatar(
-                    radius: 15,
-                    backgroundImage: AssetImage('images/dev.jpg'),
+                    radius: 20,
+                    backgroundImage: NetworkImage(widget.inovasis.profile_picture),
                   ),
                 ),
                 Container(
                   margin: const EdgeInsets.only(right: 10.0),
                   child: Text(
-                    widget.inovasis.pengguna_id.toString(),
+                    widget.inovasis.display_name.toString(),
                     style: TextStyle(
                       fontSize: 12.0,
                       color: Colors.black
@@ -70,8 +89,8 @@ class _IdeDetailState extends State<IdeDetail> {
               child: Stack(
                 children: <Widget>[
                   Material(
-                    child: Image.asset(
-                        'images/dev.jpg',
+                    child: Image.network(
+                        'http://192.168.20.102:8000/'+widget.inovasis.thumbnail,
                         width: 400.0,
                         height: 150.0,
                         fit: BoxFit.cover,
@@ -113,7 +132,7 @@ class _IdeDetailState extends State<IdeDetail> {
                     ),
                     child: new Center(
                       child: new Text(
-                        widget.inovasis.kategori_id.toString(), 
+                        widget.inovasis.kategori.toString(), 
                         style: TextStyle(
                           fontSize: 10.0, color: Colors.white
                         ),
@@ -121,6 +140,10 @@ class _IdeDetailState extends State<IdeDetail> {
                     )
                   ),
                 ),
+                SizedBox(width: 15),
+                Image.asset('images/Group.png', width: 30,),
+                SizedBox(width: 5),
+                Text(widget.inovasis.jumlah.toString()),
               ],
             )
           ]
@@ -142,7 +165,9 @@ class _IdeDetailState extends State<IdeDetail> {
             shape: new RoundedRectangleBorder(
               borderRadius: new BorderRadius.circular(8.0),
               side: BorderSide(color: Color(0xff2968E2))),
-            onPressed: () {},
+            onPressed: () {
+              joinInovasi();
+            },
             color: Color(0xff2968E2),
             textColor: Colors.white,
             child: Text("Gabung".toUpperCase(),

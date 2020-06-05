@@ -3,17 +3,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:async/async.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:inofa/api/api.dart';
 import 'package:inofa/models/kategori_model.dart';
+import 'package:inofa/models/loginUser_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 
 
 class AddIde extends StatefulWidget{
-  AddIde({Key key}) : super(key: key);
+  final LoginUser userData;
+  AddIde({Key key, this.userData}) : super(key: key);
   _AddIdeState createState() => _AddIdeState();
 }
 
@@ -21,22 +22,20 @@ class _AddIdeState extends State<AddIde>{
   String judul, tagline, kategori_id, description, idUsers;
   final _key = new GlobalKey<FormState>();
   File _thumbnail;
-  String pengguna_id = '1';
   List <ListKategori> _listKategori = [];
   var loading = false;
-
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      idUsers = preferences.getString("id");
-    });
-  }
+  static String tokenUser ='';
 
   Future<String> _getListKategori()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
     setState(() {
       loading=true;
     });
-    var response = await http.get(Uri.encodeFull(BaseUrl.listKategori), headers: {"Accept": "application/json"});
+    var response = await http.get(Uri.encodeFull(BaseUrl.listKategori), 
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    });
     var data = json.decode(response.body);
 
     setState(() {
@@ -49,9 +48,12 @@ class _AddIdeState extends State<AddIde>{
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _getListKategori();
+    setState(() {
+      tokenUser = widget.userData.user.token;
+      headers = {'Authorization': 'Bearer '+tokenUser};
+    });
   }  
 
   _pilihGallery() async {
@@ -81,13 +83,16 @@ class _AddIdeState extends State<AddIde>{
     }
   }
 
+  Map<String, String> headers;
+
   submit() async{
     try {
       var stream = http.ByteStream(DelegatingStream.typed(_thumbnail.openRead()));
       var length = await _thumbnail.length();
       var url = Uri.parse(BaseUrl.createInovasi);
       var request = http.MultipartRequest("POST", url);
-      request.fields['pengguna_id']=pengguna_id;
+      request.headers.addAll(headers);
+      request.fields['pengguna_id']=widget.userData.user.id_pengguna.toString();
       request.fields['judul']=judul;
       request.fields['tagline']=tagline;
       request.fields['kategori_id']=kategori_id;
@@ -99,7 +104,9 @@ class _AddIdeState extends State<AddIde>{
       var response = await request.send();
       if (response.statusCode > 2) {
         print("image upload");
-        Navigator.pushNamed(context, '/Home');
+        setState(() {
+          Navigator.pushReplacementNamed(context, '/CurrentTab');
+        });
       } else {
         print("image failed");
       }
@@ -116,14 +123,14 @@ class _AddIdeState extends State<AddIde>{
       appBar: AppBar(
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(
-            color: Colors.black,
-          ),
-          elevation: 4,
-          title: Text('Ide', style: TextStyle(
-            color: Colors.black,
-            ),
+          color: Colors.black,
+        ),
+        elevation: 4,
+        title: Text('Ide', style: TextStyle(
+          color: Colors.black,
           ),
         ),
+      ),
 
       body: loading? 
       Center(
@@ -191,6 +198,7 @@ class _AddIdeState extends State<AddIde>{
                 ),
                 
                 TextFormField(
+                  maxLines: 8,
                   onSaved: (e)=>description=e,
                   decoration: InputDecoration(labelText: 'Description'),
                 ),
@@ -241,7 +249,7 @@ class _AddIdeState extends State<AddIde>{
                     MaterialButton(
                       minWidth: 50,
                       onPressed: () {
-                        _pilihKamera();
+                        _pilihGallery();
                       },
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,

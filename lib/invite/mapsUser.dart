@@ -6,9 +6,10 @@ import 'package:inofa/api/api.dart';
 import 'package:inofa/chat/group_detail.dart';
 import 'package:inofa/invite/inviteProfile.dart';
 import 'package:inofa/models/inovasi_models.dart';
-import 'package:inofa/models/listUser_models.dart';
+import 'package:inofa/models/user_models.dart';
 import 'package:location/location.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 const double CAMERA_ZOOM = 15;
 const LatLng SOURCE_LOCATION = LatLng(42.747932,-71.167889);
@@ -32,17 +33,22 @@ class _MapsUserState extends State<MapsUser> {
   var loading = false;
   int userId=1;
 
-  List <ListUser> _listUserModels = [];
+  List <UserModels> _listUserModels = [];
   Future<String> _getListUser()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
     setState(() {
       loading=true;
     });
-    var response = await http.get(Uri.encodeFull(BaseUrl.listPengguna), headers: {"Accept": "application/json"});
+    var response = await http.get(Uri.encodeFull(BaseUrl.listPengguna),
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    });
     var data = json.decode(response.body);
 
     setState(() {
       for(Map i in data){
-        _listUserModels.add(ListUser.fromJson(i));
+        _listUserModels.add(UserModels.fromJson(i));
       }
       loading=false;
       print(data);
@@ -64,6 +70,12 @@ class _MapsUserState extends State<MapsUser> {
     _marker();
   }
 
+  @override
+  void dispose() {
+    updatePinOnMap();
+    super.dispose();
+  }
+
   void setInitialLocation() async {
     currentLocation = await location.getLocation();
   }
@@ -77,18 +89,17 @@ class _MapsUserState extends State<MapsUser> {
     );
 
     final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(cPosition)
-    );
+    controller.animateCamera(CameraUpdate.newCameraPosition(cPosition));
   }
 
   List<Marker> _marker(){
     List<Marker> datas = [];
     for(var i=0; i<_listUserModels.length; i++){
       datas.add(Marker(
-        markerId: MarkerId(_listUserModels[i].id_pendidikan.toString()),
+        markerId: MarkerId(_listUserModels[i].id_pengguna.toString()),
         draggable: false,
         onTap: (){
-          _onMarkerPressed(dateilUser :_listUserModels[i]);
+          _onMarkerPressed(detailUser :_listUserModels[i]);
         },
         icon: BitmapDescriptor.fromAsset('images/Pin.png'),
         position: LatLng(_listUserModels[i].latitude, _listUserModels[i].longitude)
@@ -155,7 +166,7 @@ class _MapsUserState extends State<MapsUser> {
     );
   }
 
-  void _onMarkerPressed({ListUser dateilUser}){
+  void _onMarkerPressed({UserModels detailUser}){
     showModalBottomSheet(
       context: context, 
       builder: (context){
@@ -175,7 +186,7 @@ class _MapsUserState extends State<MapsUser> {
               child: GestureDetector(
                 onTap: (){
                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => InviteProfile(
-                    inovasis: widget.inovasis, dataUser: dateilUser)));
+                    inovasis: widget.inovasis, dataUser: detailUser)));
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -183,8 +194,8 @@ class _MapsUserState extends State<MapsUser> {
                     Row(
                       children: <Widget>[
                         Material(
-                          child: Image.asset(
-                              'images/dev.jpg',
+                          child: Image.network(
+                              detailUser.profile_picture,
                               width: 65.0,
                               height: 65.0,
                               fit: BoxFit.cover,
@@ -196,9 +207,9 @@ class _MapsUserState extends State<MapsUser> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Text(dateilUser.display_name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                            Text(detailUser.display_name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
                             SizedBox(height: 3),
-                            Text(dateilUser.email, style: TextStyle(fontSize: 16),)
+                            Text(detailUser.email, style: TextStyle(fontSize: 16),)
                           ],
                         )
                       ],

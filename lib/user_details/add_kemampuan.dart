@@ -1,27 +1,39 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:inofa/models/loginUser_models.dart';
 import 'package:inofa/models/skill_models.dart';
 import 'package:inofa/api/api.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddKemampuan extends StatefulWidget {
-  AddKemampuan ({Key key}):super(key:key);
+  final LoginUser userData;
+  AddKemampuan ({Key key, this.userData}):super(key:key);
   _AddKemampuanState createState() => _AddKemampuanState();
 }
 
 class _AddKemampuanState extends State<AddKemampuan> {
 
+
+  List<ListSkill> _filterSkill = [];
   List<ListSkill> _listSkill = [];
   List<ListSkill> _listSkillSearch = [];
+  List<ListSkill> _kemampuanUser =[];
   var loading = false;
+  String txtPenggunaId, txtKemampuanId;
   TextEditingController searchController = new TextEditingController();
 
   Future<Null> _getListSkill() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
     setState(() {
       loading = true;
     });
     _listSkill.clear();
-    final response = await http.get(BaseUrl.listSkill);
+    final response = await http.get(BaseUrl.listSkill,
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    });
     final data = jsonDecode(response.body);
     setState(() {
       for(Map i in data){
@@ -30,6 +42,47 @@ class _AddKemampuanState extends State<AddKemampuan> {
       }
     });
   }
+
+  setup(){
+    txtPenggunaId = widget.userData.user.id_pengguna.toString();
+  }
+
+
+  tambahKemampuan()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    final response = await http.post(BaseUrl.getKemampuan+widget.userData.user.id_pengguna.toString(), 
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    },
+    body: {
+      "pengguna_id" : widget.userData.user.id_pengguna.toString(),
+      "kemampuan_id" : txtKemampuanId
+    });
+    Navigator.pushReplacementNamed(context, '/CurrentTab');
+  }
+
+  _getKemampuanUser()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    setState(() {
+      loading = true;
+    });
+    final response = await http.get(BaseUrl.getKemampuan+widget.userData.user.id_pengguna.toString(),
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    });
+    final dataKemampuan = jsonDecode(response.body);
+
+    setState(() {
+      for(Map i in dataKemampuan){
+        _kemampuanUser.add(ListSkill.fromJson(i));
+      }
+    });
+    // _filterSkill = _listSkill.where((element) => !_kemampuanUser.contains(element)).toList();
+    loading = false;
+  }
+
 
   onSearch(String text) async{
     _listSkillSearch.clear();
@@ -47,9 +100,9 @@ class _AddKemampuanState extends State<AddKemampuan> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _getListSkill();
+    _getKemampuanUser();
   }
 
   @override
@@ -93,7 +146,12 @@ class _AddKemampuanState extends State<AddKemampuan> {
               final searchSkills = _listSkillSearch[i];
               return Container(
                 child: GestureDetector(
-                  onTap: (){},
+                  onTap: (){
+                    setState(() {
+                      txtKemampuanId = _listSkillSearch[i].id_kemampuan.toString();
+                      tambahKemampuan();
+                    });
+                  },
                   child: Container(
                     width: 400,
                     padding: EdgeInsets.only(left:24, right: 24, bottom:5, top: 1),
@@ -132,7 +190,12 @@ class _AddKemampuanState extends State<AddKemampuan> {
               final skills = _listSkill[i];
               return Container(
                 child: GestureDetector(
-                  onTap: (){},
+                  onTap: (){
+                    setState(() {
+                      txtKemampuanId = _listSkill[i].id_kemampuan.toString();
+                      tambahKemampuan();
+                    });
+                  },
                   child: Container(
                     width: 400,
                     padding: EdgeInsets.only(left:24, right: 24, bottom:5, top: 1),

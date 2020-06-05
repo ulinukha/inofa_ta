@@ -95,6 +95,14 @@ flutter:
    - images/arrow.png
    - images/Pin.png
    - images/Back.png
+   - images/image_button.png
+   - images/Add.png
+   - images/EmptyGroup.png
+   - images/EmptyNotifikasi.png
+   - images/Group.png
+   - images/NoInovasi.png
+   - images/terima.png
+   - images/tolak.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

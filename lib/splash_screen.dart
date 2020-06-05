@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
 class SplachScreen extends StatefulWidget{
@@ -13,9 +14,11 @@ class _SplachScreenState extends State<SplachScreen>{
     super.initState();
     Future.delayed(
       Duration(seconds: 3),
-      () {
-        // Navigator.pushReplacementNamed(context, '/Onboarding');
-        Navigator.pushReplacementNamed(context, '/CurrentTab');
+      () async{
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        var email = prefs.getString('email');
+        email == null ? Navigator.pushReplacementNamed(context, '/Onboarding') : Navigator.pushReplacementNamed(context, '/CurrentTab');
+        //Navigator.pushReplacementNamed(context, '/Onboarding');
       },
     );
   }

@@ -4,31 +4,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:inofa/models/kempuanUser_models.dart';
+import 'package:inofa/models/loginUser_models.dart';
+import 'package:inofa/user_details/add_kemampuan_start.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:inofa/api/api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class GetNumber {
-  final String no_telp;
-
-  GetNumber({this.no_telp});
-
-  factory GetNumber.fromJson(Map<String, dynamic> json) {
-    return GetNumber(
-      no_telp: json['no_telp'],
-    );
-  }
-  static Future<GetNumber> getNo() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var email = prefs.getString('email');
-    var response = await http.get(BaseUrl.dataUser+email);
-    var jsonObject = json.decode(response.body);
-    var userData = (jsonObject as Map<String, dynamic>);
-
-    return GetNumber.fromJson(userData);
-  }
-}
 
 class OtpScreen extends StatefulWidget{
   OtpScreen ({Key key}): super(key:key);
@@ -50,14 +33,42 @@ class _OtpScreenState extends State<OtpScreen>{
   );
 
   int otpIndex =0;
+  LoginUser _loginUser = null;
+  List <KemampuanUser> _kemampuanUser = [];
+  var loading = false;
 
-  GetNumber getNumber=null;
-
-  updateNumber()async{
-    getNumber = await GetNumber.getNo();
-    if(mounted) setState(() {
-      // _onVerifyCode(context, getNumber.no_telp);
+  updateData()async{
+    setState(() {
+      loading = true;
     });
+    _loginUser = await LoginUser.getDataUser();
+    if(mounted) setState(() {
+    });
+    loading = false;
+    print(_loginUser.user.no_telp);
+    if(this.mounted){
+      setState(() {
+        _onVerifyCode();
+        _getKemampuanUser();
+      });
+    }
+  }
+
+    Future<Null> _getKemampuanUser()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var email = prefs.getString('email');
+    final response = await http.get(BaseUrl.getKemampuan+email,
+    headers: {
+      'Authorization': 'Bearer '+ _loginUser.user.token,
+    },);
+    final dataKemampuan = jsonDecode(response.body);
+
+    setState(() {
+      for(Map i in dataKemampuan){
+        _kemampuanUser.add(KemampuanUser.fromJson(i));
+      }
+    });
+    print(dataKemampuan);
   }
 
 
@@ -81,15 +92,13 @@ class _OtpScreenState extends State<OtpScreen>{
     _auth = FirebaseAuth.fromApp(app);
     await _auth.signOut();
     print('SIGN OUT');
-    _onVerifyCode();
   }
 
   @override
   void initState() {
     super.initState();
-    print('IN OTP PAGE');
-    // updateNumber();
-    // _handleSignOut();
+    _handleSignOut();
+    updateData();
   }
 
   bool isCodeSent = false;
@@ -128,10 +137,9 @@ class _OtpScreenState extends State<OtpScreen>{
       });
     };
 
-    // TODO: Change country code
 
     await _auth.verifyPhoneNumber(
-        phoneNumber: "+12252553050",
+        phoneNumber: '+62'+_loginUser.user.no_telp.toString(),
         timeout: const Duration(minutes: 2),
         verificationCompleted: verificationCompleted,
         verificationFailed: verificationFailed,
@@ -145,11 +153,20 @@ class _OtpScreenState extends State<OtpScreen>{
 
     _auth
         .signInWithCredential(_authCredential)
-        .then((AuthResult value) {
-      if (value.user != null) {
-        print(value.user.phoneNumber);
-        Navigator.pushReplacementNamed(context, '/Home');
-      } else {
+        .then((AuthResult value) async {
+      if (value.user != null && _kemampuanUser.length ==0) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('token', _loginUser.user.token);
+        Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context)=>AddKemampuanStart(userData: _loginUser,),
+              ),
+            );
+      } else if (value.user != null && _kemampuanUser.length !=0) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('token', _loginUser.user.token);
+        prefs.setString('idUser', _loginUser.user.id_pengguna.toString());
+        Navigator.pushReplacementNamed(context, '/CurrentTab');
+      }else {
         showToast("Error validating OTP, try again", Colors.red);
       }
     });
@@ -172,7 +189,9 @@ class _OtpScreenState extends State<OtpScreen>{
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomPadding: false,
-      body: Container(
+      body: loading?
+      Center(child: CircularProgressIndicator(),):
+      Container(
         color: Colors.white,
         child: Column(
           children: <Widget>[
@@ -437,7 +456,7 @@ class _OtpScreenState extends State<OtpScreen>{
                 ),
                 textAlign: TextAlign.center,
               ),
-              Text(getNumber==null?'':getNumber.no_telp,
+              Text(_loginUser.user.no_telp==null?'':_loginUser.user.no_telp,
                 style: TextStyle(color: Color(0xff2968E2),
                 fontSize: 14.0, 
                 ),
@@ -461,7 +480,9 @@ class _OtpScreenState extends State<OtpScreen>{
           ),
         ),
         FlatButton(
-              onPressed: () {},
+              onPressed: () {
+                _onVerifyCode();
+              },
               child: Text(
                 'Kirim Ulang',
                 style: TextStyle(color: Colors.red, fontSize: 14.0, fontWeight: FontWeight.w600),

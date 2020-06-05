@@ -1,35 +1,127 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:inofa/api/api.dart';
 import 'package:inofa/custom/datePicker.dart';
-import 'package:inofa/models/loginUser_models.dart';
+import 'package:inofa/models/allWilayah_models.dart';
 import 'package:inofa/models/pendidikan_models.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart' as geolocation;
+import 'package:location/location.dart';
+import 'package:geocoder/geocoder.dart';
 
-class EditProfil extends StatefulWidget {
+class UpdateProfileStart extends StatefulWidget {
   @override
-  _EditProfilState createState() => _EditProfilState();
+  _UpdateProfileStartState createState() => _UpdateProfileStartState();
 }
 
-class _EditProfilState extends State<EditProfil> {
-  LoginUser _loginUser = null;
+class _UpdateProfileStartState extends State<UpdateProfileStart> {
   var loading = false;
   final _key = new GlobalKey<FormState>();
-  String display_name, no_telp, website, short_desc, txtTglLahir, pendidikan;
-  TextEditingController txtDisplayName, txtNoTelp, txtWebsite, txtShortDesc;
-  final FocusNode _nodeNumber = FocusNode();
+  String display_name, txtTglLahir, pendidikan;
+  TextEditingController txtDisplayName;
   List <ListPendidikan> _listPendidikan = [];
-  File _profile_picture;
-  static String tokenUser ='';
+  List<AllWilayah> _listWilayah = [];
   Map<String, String> headers;
+  String latitude = ""; 
+  String longitude = ""; 
+  String propinsi, idWilayah;
 
-  Future<String> _getListPendidikan() async{
+  void _getCurrentLocation() async {
+    final position = await geolocation.Geolocator().getCurrentPosition(desiredAccuracy: geolocation.LocationAccuracy.high);
+    if(this.mounted){
+      setState(() {
+        latitude = "${position.latitude}";
+        longitude = "${position.longitude}";
+      });
+    }
+    getUserLocation();
+  }
+
+  getUserLocation() async {
+    // LocationData myLocation;
+    // String error;
+    // Location location = new Location();
+    // try {
+    //   myLocation = await location.getLocation();
+    // } on PlatformException catch (e) {
+    //   if (e.code == 'PERMISSION_DENIED') {
+    //     error = 'please grant permission';
+    //     print(error);
+    //   }
+    //   if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
+    //     error = 'permission denied- please enable it from app settings';
+    //     print(error);
+    //   }
+    //   myLocation = null;
+    // }
+
+    final coordinates = new Coordinates(
+        double.parse(latitude), double.parse(longitude));
+    var addresses = await Geocoder.local.findAddressesFromCoordinates(coordinates);
+    var first = addresses.first;
+    setState(() {
+      propinsi = ('${first.adminArea}');
+      print('${first.adminArea}');
+    });
+    _getListWilayah();
+    return first;
+  }
+
+  Future<Null> _getListWilayah()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    setState(() {
+      loading = true;
+    });
+    final response = await http.get(BaseUrl.wilayahApi,
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    });
+    final dataWilayah = jsonDecode(response.body);
+    setState(() {
+      for(Map i in dataWilayah){
+        _listWilayah.add(AllWilayah.fromJson(i));
+      }
+    });
+    List<AllWilayah> _filtered = _listWilayah.where((item)=>item.propinsi==propinsi).toList();
+    if(this.mounted && _filtered.length != 0){
+      setState(() {
+      idWilayah= _filtered[0].id_wilayah.toString();
+    });
+    }
+    updateLocation();
+    loading = false;
+  }
+
+  updateLocation() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var email = prefs.getString('email');
+    var token = prefs.getString('token');
+    final response = await http.post(BaseUrl.setLocation+email,
+      headers: {
+      'Authorization': 'Bearer '+ token,
+    },
+    body: {
+      "longitude":longitude,
+      "latitude":latitude,
+      "lokasi" : idWilayah,
+    });
+  }
+
+  update()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var names = prefs.getString('name');
+    setState(() {
+      txtDisplayName = TextEditingController(text: names);
+    });
+  }
+
+  Future<Null> _getListPendidikan() async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = prefs.getString('token');
     var response = await http.get(Uri.encodeFull(BaseUrl.listPendidikan), 
@@ -46,47 +138,21 @@ class _EditProfilState extends State<EditProfil> {
     });
   }
 
-  _pilihGallery() async {
-    var image = await ImagePicker.pickImage(
-        source: ImageSource.gallery, maxHeight: 1920.0, maxWidth: 1080.0);
-    setState(() {
-      _profile_picture = image;
-    });
-  }
-
-  updateData()async{
-    setState(() {
-      loading = true;
-    });
-    _loginUser = await LoginUser.getDataUser();
-    if(mounted) setState(() {
-      tokenUser = _loginUser.user.token;
-      headers = {'Authorization': 'Bearer '+tokenUser};
-    });
-    setState(() {
-      setup();
-      loading=false;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-    updateData();
+    update();
     _getListPendidikan();
+    _getCurrentLocation();
   }
 
-  setup(){
+  setup() async {
     setState(() {
       loading = true;
     });
-    pendidikan = _loginUser.user.id_pendidikan.toString();
-    txtTglLahir = _loginUser.user.tgl_lahir;
-    txtDisplayName = TextEditingController(text: _loginUser.user.display_name);
-    txtWebsite = TextEditingController(text: _loginUser.user.website);
-    txtNoTelp = TextEditingController(text: _loginUser.user.no_telp);
-    txtShortDesc = TextEditingController(text: _loginUser.user.short_desc);
-    loading = false;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var displayName = prefs.getString('display_name');
+    txtDisplayName = TextEditingController(text: displayName);
   }
 
   String pilihTanggal, labelTanggal;
@@ -119,27 +185,25 @@ class _EditProfilState extends State<EditProfil> {
     }
   }
 
-  submit() async{
-    try {
-      var url = Uri.parse(BaseUrl.updateUser + _loginUser.user.email.toString());
-      var request = http.MultipartRequest("POST", url);
-      request.headers.addAll(headers);
-      request.fields['display_name']=display_name;
-      request.fields['pendidikan']=pendidikan;
-      request.fields['tgl_lahir']="$txtTglLahir";
-      request.fields['website']=website;
-      request.fields['no_telp']=no_telp;
-      request.fields['short_desc']=short_desc;
-
-      var response = await request.send();
-      if (response.statusCode > 2) {
-        print("profile diperbarui");
-        Navigator.pushReplacementNamed(context, '/CurrentTab');
-      } else {
-        print("gagal memperbaharui profile");
-      }
-    } catch(e){
-      debugPrint("Error $e");
+  submit()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    var email = prefs.getString('email');
+    final response = await http.post(BaseUrl.updateUser+email, 
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    },
+    body: {
+      "display_name" : display_name,
+      "pendidikan" : pendidikan,
+      "tgl_lahir" : "$txtTglLahir",
+      "website" : '-',
+      "no_telp" : '1',
+      "short_desc" : '-',
+    });
+    if(response.statusCode ==200){
+      Navigator.pushReplacementNamed(context, '/Number');
+      print('upload oke');
     }
   }
 
@@ -165,13 +229,13 @@ class _EditProfilState extends State<EditProfil> {
         automaticallyImplyLeading: false,
         centerTitle: true,
         elevation: 4,
-        title: Text('Edit Profil', style: TextStyle(
+        title: Text('Input Profil', style: TextStyle(
           color: Colors.black,
           ),
         ),
       ),
       
-      body: _loginUser == null? 
+      body: loading? 
       Center(
         child: CircularProgressIndicator(),
       ):
@@ -185,25 +249,6 @@ class _EditProfilState extends State<EditProfil> {
                 controller: txtDisplayName,
                 onSaved: (e) => display_name = e,
                 decoration: InputDecoration(labelText: 'Nama'),
-              ),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                autofocus: false,
-                focusNode: _nodeNumber,
-                controller: txtNoTelp,
-                onSaved: (e) => no_telp = e,
-                decoration: InputDecoration(labelText: 'No Hp'),
-              ),
-              TextFormField(
-                controller: txtWebsite,
-                onSaved: (e) => website = e,
-                decoration: InputDecoration(labelText: 'Website'),
-              ),
-              TextFormField(
-                maxLines: 8,
-                controller: txtShortDesc,
-                onSaved: (e) => short_desc = e,
-                decoration: InputDecoration(labelText: 'Short Desc'),
               ),
               SizedBox(height:15),
               Text('Pendidikan', style: TextStyle(fontSize: 15, color: Colors.black),),
@@ -222,7 +267,7 @@ class _EditProfilState extends State<EditProfil> {
                       print(pendidikan);
                     });
                   },
-                  hint: Text(_loginUser.user.pendidikan == null? 'Pendidikan': _loginUser.user.pendidikan.toString()),
+                  hint: Text('Pendidikan'),
                   value: pendidikan,
                 ),
               ),
@@ -230,7 +275,7 @@ class _EditProfilState extends State<EditProfil> {
               Text('Tanggal Lahir', style: TextStyle(fontSize: 15, color: Colors.black),),
               DateDropDown(
                 labelText: labelTanggal,
-                valueText: _loginUser.user.tgl_lahir ==null? formatTgl.format(tgl) : txtTglLahir,
+                valueText: formatTgl.format(tgl),
                 valueStyle: valueStyle,
                 onPressed: (){
                   _selectedDate(context);

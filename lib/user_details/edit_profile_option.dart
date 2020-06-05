@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfileOption extends StatefulWidget {
   @override
@@ -6,6 +10,33 @@ class EditProfileOption extends StatefulWidget {
 }
 
 class _EditProfileOptionState extends State<EditProfileOption> {
+
+  FirebaseApp app;
+  Future<void> _handleSignOut() async {
+    app = await FirebaseApp.configure(
+      name: 'test1',
+      options: Platform.isAndroid
+          ? FirebaseOptions(
+              googleAppID: '1:1051653715401:android:21f960d090fea917012418',
+              apiKey: 'AIzaSyD1Dk4baQLz0QshslXVzepo7B5KzcDjt4U',
+              projectID: 'inova-ta',
+            )
+          : FirebaseOptions(
+              googleAppID: 'url.googleAppIdIoS',
+              gcmSenderID: 'url.gcmSenderId',
+              apiKey: 'url.apiKeyIoS',
+              projectID: 'url.projectId',
+            ),
+    );
+    _auth = FirebaseAuth.fromApp(app);
+    await _auth.signOut();
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.clear();
+    Navigator.pushReplacementNamed(context, '/SignIn');
+    print('SIGN OUT');
+  }
+  FirebaseAuth _auth = FirebaseAuth.instance;
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,7 +194,7 @@ class _EditProfileOptionState extends State<EditProfileOption> {
                     borderRadius: new BorderRadius.circular(8.0),
                     side: BorderSide(color: Color(0xffFF6143))),
                   onPressed: () {
-
+                    _handleSignOut();
                   },
                   color: Color(0xffFF6143),
                   textColor: Colors.black,

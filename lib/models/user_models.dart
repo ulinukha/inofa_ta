@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import 'package:inofa/api/api.dart';
 
@@ -18,6 +17,7 @@ class UserModels{
   double latitude;
   int rating;
   int status;
+  int id_pendidikan;
 
   UserModels({
     this.id_pengguna,
@@ -33,7 +33,8 @@ class UserModels{
     this.longitude,
     this.latitude,
     this.rating,
-    this.status
+    this.status,
+    this.id_pendidikan,
   });
 
   factory UserModels.fromJson(Map<String, dynamic> json) {
@@ -52,11 +53,12 @@ class UserModels{
       latitude: json['latitude'],
       rating: json['rating'],
       status: json['status'],
+      id_pendidikan: json['id_pendidikan'],
     );
   }
 
   static Future<UserModels> getDataUser() async{
-    var response = await http.get(BaseUrl.dataUser+'taro@gmail.com');
+    var response = await http.get(BaseUrl.dataUser+'fikri.ulinukha@gmail.com');
     var jsonObject = json.decode(response.body);
     var data = (jsonObject as Map<String, dynamic>);
 

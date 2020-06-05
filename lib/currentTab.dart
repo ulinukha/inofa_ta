@@ -46,6 +46,7 @@ final PageStorageBucket bucket = PageStorageBucket();
         shape: CircularNotchedRectangle(),
         notchMargin: 10,
         child: Container(
+          padding: EdgeInsets.only(left: 20),
           height: 60,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

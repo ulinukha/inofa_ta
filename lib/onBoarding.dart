@@ -19,7 +19,7 @@ class _OnBoardingState extends State<OnBoarding>{
       height: isCurrentPage? 10: 6,
       width: isCurrentPage? 10: 6,
       decoration: BoxDecoration(
-        color: isCurrentPage? Colors.grey : Colors.grey[300],
+        color: isCurrentPage? Colors.white : Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
     );
@@ -28,6 +28,7 @@ class _OnBoardingState extends State<OnBoarding>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Container(
         height: double.infinity,
         child: Container(
@@ -64,17 +65,17 @@ class _OnBoardingState extends State<OnBoarding>{
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            FlatButton(
-              onPressed: () {
-                _pageController.animateToPage(2, duration: Duration(milliseconds: 400), curve: Curves.linear);
-                      setState(() {});
-              },
-              splashColor: Colors.blue[50],
-              child: Text(
-                'Skip',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
-                ),
-            ),
+            // FlatButton(
+            //   onPressed: () {
+            //     _pageController.animateToPage(2, duration: Duration(milliseconds: 400), curve: Curves.linear);
+            //           setState(() {});
+            //   },
+            //   splashColor: Colors.blue[50],
+            //   child: Text(
+            //     'Skip',
+            //     style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+            //     ),
+            // ),
 
             Container(
                     child: Row(children: [

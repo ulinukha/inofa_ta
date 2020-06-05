@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inofa/currentTab.dart';
+import 'package:inofa/search/show_all_kategori.dart';
 import 'package:inofa/splash_screen.dart';
 import 'package:inofa/onBoarding.dart';
 import 'package:inofa/register/sign_in.dart';
@@ -12,6 +13,7 @@ import 'package:inofa/tab/tab_profile.dart';
 import 'package:inofa/user_details/add_kemampuan.dart';
 import 'package:inofa/user_details/edit_profile_option.dart';
 import 'package:inofa/user_details/edit_profile.dart';
+import 'package:inofa/user_details/update_profile_start.dart';
 
 
 void main() {
@@ -28,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/' : (context) => SplachScreen(),
         '/Onboarding' : (context) => OnBoarding(),
         '/SignIn' : (context) => SignIn(),
+        '/updateProfile' : (context) => UpdateProfileStart(),
         '/Number' : (context) => Number(),
         '/Otp' : (context) => OtpScreen(),
         '/CurrentTab': (context) => CurrentTab(),
@@ -35,6 +38,7 @@ class MyApp extends StatelessWidget {
         '/Chat' : (context) => Chat(),
         '/Notification' : (context) => Notif(),
         '/Profile' : (context) => Profile(),
+        '/serchKategori' : (context) => ShowAll(),
         '/AddSkill' : (context) => AddKemampuan(),
         '/EditProfileOption' : (context) => EditProfileOption(),
         '/EditProfil' : (context) => EditProfil()

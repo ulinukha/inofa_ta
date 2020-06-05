@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class Tes extends StatefulWidget {
-  Tes({Key key, String display_name}) : super(key: key);
   _TesState createState() => _TesState();
 }
 

@@ -1,16 +1,71 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:inofa/tab/tab_profile.dart';
+import 'package:inofa/api/api.dart';
+import 'package:inofa/models/kempuanUser_models.dart';
+import 'package:inofa/models/requestJoin_models.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RequstJoin extends StatefulWidget {
-  RequstJoin ({Key key}) : super(key : key);
+  final ListRequestJoin dataReq;
+  RequstJoin ({Key key, this.dataReq}) : super(key : key);
   @override
   _RequstJoinState createState() => _RequstJoinState();
 }
 
 class _RequstJoinState extends State<RequstJoin> {
+  List<KemampuanUser> _kemampuanUser = [];
+  var loading = false;
+
+  Future<Null> _getKemampuanUser()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    setState(() {
+      loading = true;
+    });
+    final response = await http.get(BaseUrl.getKemampuan+widget.dataReq.pengguna_id.toString(),
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    });
+    final dataKemampuan = jsonDecode(response.body);
+
+    setState(() {
+      for(Map i in dataKemampuan){
+        _kemampuanUser.add(KemampuanUser.fromJson(i));
+        loading = false;
+      }
+    });
+  }
+
+  grandJoin()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    final response = await http.post(BaseUrl.grandJoinApi+widget.dataReq.pengguna_id.toString(), 
+    headers: {
+      'Authorization': 'Bearer '+ token,
+    },
+    body: {
+      "pengguna_id" : widget.dataReq.pengguna_id.toString(),
+      "inovasi_id" : widget.dataReq.inovasi_id.toString()
+    });
+    Navigator.pushReplacementNamed(context, '/CurrentTab');
+  }
+
+  @override
+  void initState() {
+    _getKemampuanUser();
+    print(widget.dataReq.display_name.toString());
+    super.initState();
+  }
+
+  final dateFormat = new DateFormat('dd-MM-yyyy');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(
@@ -23,104 +78,75 @@ class _RequstJoinState extends State<RequstJoin> {
         ),
         
       ),
-      body: Container(
-        color: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 24),
-        child: ListView(
-          children: <Widget>[
-            // SizedBox(height: 10.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Material(
-                  child: Image.asset(
-                      'images/dev.jpg',
-                      width: 70.0,
-                      height: 70.0,
-                      fit: BoxFit.cover,
-                    ),
-                  borderRadius: BorderRadius.all(Radius.circular(45.0)),
-                  clipBehavior: Clip.hardEdge,
-                ),
-                 Container(
-                  width: 70,
-                  child: GestureDetector(
-                    onTap: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //       builder: (context) => Number(),
-                      //       ),
-                      // );
-                    },
-                    child: Container(
-                      child: Column(
-                        children: <Widget>[
-                          Text('5.0', style: TextStyle(fontWeight: FontWeight.bold),),
-                          Text('Score'),
-                        ],
-                      ),
-                    ),
-                  )
-                ),
-                Container(
-                  width: 70,
-                  child: GestureDetector(
-                    onTap: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //       builder: (context) => Number(),
-                      //       ),
-                      // );
-                    },
-                    child: Container(
-                      child: Column(
-                        children: <Widget>[
-                          Text('255', style: TextStyle(fontWeight: FontWeight.bold),),
-                          Text('Pengikut'),
-                        ],
-                      ),
-                    ),
-                  )
-                ),
-                Container(
-                  width: 70,
-                  child: GestureDetector(
-                    onTap: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //       builder: (context) => Number(),
-                      //       ),
-                      // );
-                    },
-                    child: Container(
-                      child: Column(
-                        children: <Widget>[
-                          Text('255',
-                          style: TextStyle(fontWeight: FontWeight.bold),),
-                          Text('Mengikuti'),
-                        ],
-                      ),
-                    ),
-                  )
-                ),
-              ],
-            ),
-            SizedBox(height: 10.0),
-            Column(
+      body: loading? 
+        Center(
+          child: CircularProgressIndicator()
+        ): 
+        Container(
+          padding: EdgeInsets.only(left: 24, right: 24, bottom: 5),
+          child: Container(
+            
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                Text('user.userName',
-                style: TextStyle(fontWeight: FontWeight.bold),)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      padding: EdgeInsets.only(top: 15),
+                      margin: const EdgeInsets.only(right: 20.0),
+                      child: Material(
+                        child: Image.network(
+                            widget.dataReq.profile_picture,
+                            width: 75.0,
+                            height: 75.0,
+                            fit: BoxFit.cover,
+                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(50.0)),
+                          clipBehavior: Clip.hardEdge,
+                      ),
+                    ),
+                    Container(
+                      child: Column(
+                        children: <Widget>[
+                          Text(
+                            widget.dataReq.display_name,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                          ),
+                        ],
+                      )
+                    )
+                  ],
+                ),
+                SizedBox(height: 10.0),
+                Container(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      ConstrainedBox(
+                        constraints: new BoxConstraints(
+                        maxHeight: 175.0,
+                      ),
+                        child: widget.dataReq.short_desc==null?Container():
+                        Text(widget.dataReq.short_desc, style: TextStyle(fontSize: 14),),
+                      ),
+                      SizedBox(height: 2),
+                        widget.dataReq.website==null?Container():
+                      Text(widget.dataReq.website, style: TextStyle(fontSize: 14),),
+                      SizedBox(height: 2),
+                      widget.dataReq.tgl_lahir==null?Container():
+                        Text(dateFormat.format(DateTime.parse(widget.dataReq.tgl_lahir.toString())), style: TextStyle(fontSize: 14),),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10.0),
+                Expanded(child: _tabProfile()),
               ],
             ),
-            SizedBox(height: 10.0),
-          _tabProfile(),
-          ],
-        ),
+          ),
       ),
+
 
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -158,7 +184,9 @@ class _RequstJoinState extends State<RequstJoin> {
                       shape: new RoundedRectangleBorder(
                         borderRadius: new BorderRadius.circular(8.0),
                         side: BorderSide(color: Color(0xff2968E2))),
-                      onPressed: () {},
+                      onPressed: () {
+                        grandJoin();
+                      },
                       color: Color(0xff2968E2),
                       textColor: Colors.white,
                       child: Text("Izinkan".toUpperCase(),
@@ -171,37 +199,132 @@ class _RequstJoinState extends State<RequstJoin> {
           ),
         )
       ),
-      
     );
   }
-}
 
-_tabProfile(){
-  return Container(
-    child: DefaultTabController(
-          length: 3,
-          initialIndex: 0,
-          child: Column(
-            children: [
-              TabBar(
-                tabs: [
-                  Tab(text: 'Portofolio'), 
-                  Tab(text: 'Kemampuan'),
-                  Tab(text: 'Pengalaman'),
-                ],
-                labelColor: Colors.black,
-                labelStyle: TextStyle(fontSize: 12.0),
+  Widget _tabProfile(){
+    return Container(
+      child: DefaultTabController(
+        length: 3,
+        initialIndex: 1,
+        child: Column(
+          children: <Widget>[
+            TabBar(
+              tabs: [
+                Tab(text: 'Portofolio'),
+                Tab(text: 'Kemampuan'),
+                Tab(text: 'Pengalaman'),
+              ],
+              labelColor: Colors.black,
+              labelStyle: TextStyle(fontSize: 12.0),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: <Widget>[
+                  tabViewPortofolio(),
+                  tabViewKemampuan(),
+                  tabViewPortofolio(),
+                ]
               ),
-              Container(
-                  height: 300.0, 
-                  child: TabBarView(
-                    children: [
-                      Center(child: Text('Portofolio')),
-                      Center(child: Text('Kemampuan')),
-                      Center(child: Text('Pengalaman')),
-                      ],
-                  ))
-            ],
-          ))
-  );
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget tabViewPortofolio(){
+    return SingleChildScrollView(
+      child: Container(
+        color: Colors.transparent,
+        padding: EdgeInsets.only(left: 1.0, right: 1),
+        child: _listPortofolio(),
+      ),
+    );
+  }
+
+  Widget tabViewKemampuan(){
+    return SingleChildScrollView(
+      child: Container(
+        color: Colors.transparent,
+        padding: EdgeInsets.only(left: 1.0, right: 1),
+        child: _listKemampuan(),
+      ),
+    );
+  }
+
+  Widget tabViewPengalaman(){
+    return SingleChildScrollView(
+      child: Container(
+        color: Colors.transparent,
+        padding: EdgeInsets.only(left: 1.0, right: 1),
+        child: _listKemampuan(),
+      ),
+    );
+  }
+
+  Widget _listKemampuan(){
+    return Container(
+      padding: EdgeInsets.only(top: 20),
+      child: Column(
+        children: <Widget>[
+          ListView.builder(
+            shrinkWrap: true,
+            primary: false,
+            itemCount: _kemampuanUser.length,
+            itemBuilder: (context, i){
+              return Container(
+                color: Colors.transparent,
+                padding: EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: new BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 3.0
+                      )
+                    ],
+                    borderRadius: new BorderRadius.all(Radius.circular(10))
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Text(_kemampuanUser[i].kemampuan)
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              );
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _listPortofolio(){
+    return Container(
+      padding: EdgeInsets.only(top:20),
+      child: Column(
+        children: <Widget>[
+          ListView.builder(
+            shrinkWrap: true,
+            primary: false,
+            itemCount: 1,
+            itemBuilder: (context, i){
+              return Center(
+                child: Text('Fitur Belum Tersedia',
+                style: TextStyle(fontWeight: FontWeight.bold),),
+              );
+            },
+          )
+        ],
+      ),
+    );
+  }
 }

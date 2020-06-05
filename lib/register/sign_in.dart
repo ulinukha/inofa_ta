@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:inofa/api/api.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 class SignIn extends StatefulWidget{
   SignIn({Key key}) : super(key: key);
@@ -33,8 +31,8 @@ class _SignInState extends State<SignIn>{
 
     final FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
     print("signed in " + user.displayName);
-    // daftar(user.uid, user.displayName, user.photoUrl, user.email);
-    Navigator.pushReplacementNamed(context, '/CurrentTab');
+    daftar(user.uid, user.displayName, user.photoUrl, user.email);
+    // Navigator.pushReplacementNamed(context, '/Number');
     
     return user;
   }
@@ -48,9 +46,10 @@ class _SignInState extends State<SignIn>{
     });
     
     final data = jsonDecode(response.body);
-    int value = data['value'];
     String message = data['message'];
-    if (value ==0) {
+    String token = data['token'];
+    String name = data['name'];
+    if (message == 'User sudah terdaftar') {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setString('email', '$email');
       setState(() {
@@ -58,13 +57,15 @@ class _SignInState extends State<SignIn>{
       });
       Navigator.pushReplacementNamed(context, '/Otp');
       print(message);
-    } else if(value ==  1) {
+    } else if(message == 'Pengguna berhasil didaftarkan') {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setString('email', '$email');
+      prefs.setString('name', '$name');
+      prefs.setString('token', '$token');
       setState(() {
         loading=false;
       });
-      Navigator.pushReplacementNamed(context, '/Number');
+      Navigator.pushReplacementNamed(context, '/updateProfile');
       print(message);
       
     }
