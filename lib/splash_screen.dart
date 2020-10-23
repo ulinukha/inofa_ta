@@ -8,7 +8,6 @@ class SplachScreen extends StatefulWidget{
 }
 
 class _SplachScreenState extends State<SplachScreen>{
-
   @override
   void initState() {
     super.initState();
@@ -18,7 +17,6 @@ class _SplachScreenState extends State<SplachScreen>{
         SharedPreferences prefs = await SharedPreferences.getInstance();
         var email = prefs.getString('email');
         email == null ? Navigator.pushReplacementNamed(context, '/Onboarding') : Navigator.pushReplacementNamed(context, '/CurrentTab');
-        //Navigator.pushReplacementNamed(context, '/Onboarding');
       },
     );
   }
@@ -48,5 +46,4 @@ class _SplachScreenState extends State<SplachScreen>{
       ),
     );
   }
-  
 }

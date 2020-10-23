@@ -10,7 +10,6 @@ class EditProfileOption extends StatefulWidget {
 }
 
 class _EditProfileOptionState extends State<EditProfileOption> {
-
   FirebaseApp app;
   Future<void> _handleSignOut() async {
     app = await FirebaseApp.configure(

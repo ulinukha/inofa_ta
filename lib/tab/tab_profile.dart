@@ -120,11 +120,11 @@ class _ProfileState extends State<Profile> {
                         constraints: new BoxConstraints(
                         maxHeight: 175.0,
                       ),
-                        child: _loginUser.user.short_desc==null?Container():
+                        child: _loginUser.user.short_desc=='-'?SizedBox():
                         Text(_loginUser.user.short_desc, style: TextStyle(fontSize: 14),),
                       ),
                       SizedBox(height: 2),
-                        _loginUser.user.website==null?Container():
+                        _loginUser.user.website=='-'?SizedBox():
                       Text(_loginUser.user.website, style: TextStyle(fontSize: 14),),
                       SizedBox(height: 2),
                       _loginUser.user.tgl_lahir==null?Container():

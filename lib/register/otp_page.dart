@@ -12,14 +12,13 @@ import 'package:http/http.dart' as http;
 import 'package:inofa/api/api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
-class OtpScreen extends StatefulWidget{
-  OtpScreen ({Key key}): super(key:key);
+class OtpScreen extends StatefulWidget {
+  OtpScreen({Key key}) : super(key: key);
   _OtpScreenState createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen>{
-  List<String> currentOtp = ["","","","","",""];
+class _OtpScreenState extends State<OtpScreen> {
+  List<String> currentOtp = ["", "", "", "", "", ""];
   TextEditingController otpOneController = TextEditingController();
   TextEditingController otpTwoController = TextEditingController();
   TextEditingController otpThreeController = TextEditingController();
@@ -32,21 +31,20 @@ class _OtpScreenState extends State<OtpScreen>{
     borderSide: BorderSide(color: Colors.transparent),
   );
 
-  int otpIndex =0;
+  int otpIndex = 0;
   LoginUser _loginUser = null;
-  List <KemampuanUser> _kemampuanUser = [];
+  List<KemampuanUser> _kemampuanUser = [];
   var loading = false;
 
-  updateData()async{
+  updateData() async {
     setState(() {
       loading = true;
     });
     _loginUser = await LoginUser.getDataUser();
-    if(mounted) setState(() {
-    });
+    if (mounted) setState(() {});
     loading = false;
     print(_loginUser.user.no_telp);
-    if(this.mounted){
+    if (this.mounted) {
       setState(() {
         _onVerifyCode();
         _getKemampuanUser();
@@ -54,23 +52,24 @@ class _OtpScreenState extends State<OtpScreen>{
     }
   }
 
-    Future<Null> _getKemampuanUser()async{
+  Future<Null> _getKemampuanUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var email = prefs.getString('email');
-    final response = await http.get(BaseUrl.getKemampuan+email,
-    headers: {
-      'Authorization': 'Bearer '+ _loginUser.user.token,
-    },);
+    final response = await http.get(
+      BaseUrl.getKemampuan + _loginUser.user.id_pengguna.toString(),
+      headers: {
+        'Authorization': 'Bearer ' + _loginUser.user.token,
+      },
+    );
     final dataKemampuan = jsonDecode(response.body);
 
     setState(() {
-      for(Map i in dataKemampuan){
+      for (Map i in dataKemampuan) {
         _kemampuanUser.add(KemampuanUser.fromJson(i));
       }
     });
     print(dataKemampuan);
   }
-
 
   FirebaseApp app;
   Future<void> _handleSignOut() async {
@@ -137,9 +136,8 @@ class _OtpScreenState extends State<OtpScreen>{
       });
     };
 
-
     await _auth.verifyPhoneNumber(
-        phoneNumber: '+62'+_loginUser.user.no_telp.toString(),
+        phoneNumber: '+62' + _loginUser.user.no_telp.toString(),
         timeout: const Duration(minutes: 2),
         verificationCompleted: verificationCompleted,
         verificationFailed: verificationFailed,
@@ -149,24 +147,26 @@ class _OtpScreenState extends State<OtpScreen>{
 
   void _onFormSubmitted() async {
     AuthCredential _authCredential = PhoneAuthProvider.getCredential(
-        verificationId: _verificationId, smsCode:stringCode);
+        verificationId: _verificationId, smsCode: stringCode);
 
-    _auth
-        .signInWithCredential(_authCredential)
-        .then((AuthResult value) async {
-      if (value.user != null && _kemampuanUser.length ==0) {
+    _auth.signInWithCredential(_authCredential).then((AuthResult value) async {
+      if (value.user != null && _kemampuanUser.length == 0) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('token', _loginUser.user.token);
         Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context)=>AddKemampuanStart(userData: _loginUser,),
-              ),
-            );
-      } else if (value.user != null && _kemampuanUser.length !=0) {
+          context,
+          MaterialPageRoute(
+            builder: (context) => AddKemampuanStart(
+              userData: _loginUser,
+            ),
+          ),
+        );
+      } else if (value.user != null && _kemampuanUser.length != 0) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('token', _loginUser.user.token);
         prefs.setString('idUser', _loginUser.user.id_pengguna.toString());
         Navigator.pushReplacementNamed(context, '/CurrentTab');
-      }else {
+      } else {
         showToast("Error validating OTP, try again", Colors.red);
       }
     });
@@ -182,54 +182,52 @@ class _OtpScreenState extends State<OtpScreen>{
         textColor: Colors.white,
         fontSize: 16.0);
   }
-  
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
-      body: loading?
-      Center(child: CircularProgressIndicator(),):
-      Container(
-        color: Colors.white,
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                alignment: Alignment(0, 0.5),
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+        resizeToAvoidBottomPadding: false,
+        body: loading
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : Container(
+                color: Colors.white,
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    SizedBox(height: 60.0),
-                    buildTitleText(),
-                    SizedBox(height: 5.0),
-                    buildDescriptionText(),
-                    SizedBox(height: 30.0),
-                    buildPinRow(),
-                    SizedBox(height: 30.0),
-                    buildNumberPad(),
-                  ]
+                    Expanded(
+                      child: Container(
+                        alignment: Alignment(0, 0.5),
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              SizedBox(height: 60.0),
+                              buildTitleText(),
+                              SizedBox(height: 5.0),
+                              buildDescriptionText(),
+                              SizedBox(height: 30.0),
+                              buildPinRow(),
+                              SizedBox(height: 30.0),
+                              buildNumberPad(),
+                            ]),
+                      ),
+                    ),
+                    buildButtonVerification(),
+                    SizedBox(height: 10.0),
+                    buildSendOtpText(),
+                    SizedBox(height: 20.0),
+                  ],
                 ),
-            ),
-            ),
-            buildButtonVerification(),
-            SizedBox(height: 10.0),
-            buildSendOtpText(),
-            SizedBox(height: 20.0),
-          ],
-        ),
-      ) 
-    );
+              ));
   }
 
-  buildNumberPad(){
+  buildNumberPad() {
     return Expanded(
       child: Container(
         alignment: Alignment.bottomCenter,
         child: Padding(
-          padding: const EdgeInsets.only(bottom:32.0),
+          padding: const EdgeInsets.only(bottom: 32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
@@ -238,22 +236,22 @@ class _OtpScreenState extends State<OtpScreen>{
                 children: <Widget>[
                   KeyboardNumber(
                     n: 1,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("1");
                     },
                   ),
                   KeyboardNumber(
                     n: 2,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("2");
                     },
                   ),
                   KeyboardNumber(
                     n: 3,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("3");
                     },
-                  ), 
+                  ),
                 ],
               ),
               Row(
@@ -261,22 +259,22 @@ class _OtpScreenState extends State<OtpScreen>{
                 children: <Widget>[
                   KeyboardNumber(
                     n: 4,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("4");
                     },
                   ),
                   KeyboardNumber(
                     n: 5,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("5");
                     },
                   ),
                   KeyboardNumber(
                     n: 6,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("6");
                     },
-                  ), 
+                  ),
                 ],
               ),
               Row(
@@ -284,22 +282,22 @@ class _OtpScreenState extends State<OtpScreen>{
                 children: <Widget>[
                   KeyboardNumber(
                     n: 7,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("7");
                     },
                   ),
                   KeyboardNumber(
                     n: 8,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("8");
                     },
                   ),
                   KeyboardNumber(
                     n: 9,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("9");
                     },
-                  ), 
+                  ),
                 ],
               ),
               Row(
@@ -309,12 +307,12 @@ class _OtpScreenState extends State<OtpScreen>{
                     width: 50.0,
                     child: MaterialButton(
                       onPressed: null,
-                      child: SizedBox()
-                    ,),
+                      child: SizedBox(),
+                    ),
                   ),
                   KeyboardNumber(
                     n: 0,
-                    onPressed:() {
+                    onPressed: () {
                       otpIndexSetup("0");
                     },
                   ),
@@ -323,13 +321,12 @@ class _OtpScreenState extends State<OtpScreen>{
                     child: MaterialButton(
                       height: 50.0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50.0)
-                      ),
+                          borderRadius: BorderRadius.circular(50.0)),
                       onPressed: () {
                         clearOtp();
                       },
                       child: Image.asset('images/delete.png',
-                      color: Color(0xff2968E2)),
+                          color: Color(0xff2968E2)),
                     ),
                   ),
                 ],
@@ -342,56 +339,55 @@ class _OtpScreenState extends State<OtpScreen>{
   }
 
   clearOtp() {
-    if(otpIndex == 0)
+    if (otpIndex == 0)
       otpIndex = 0;
-    else if (otpIndex == 6){
+    else if (otpIndex == 6) {
       setOtp(otpIndex, "");
       currentOtp[otpIndex - 1] = "";
       otpIndex--;
-    }else {
+    } else {
       setOtp(otpIndex, "");
       currentOtp[otpIndex - 1] = "";
       otpIndex--;
     }
   }
 
-  String stringCode=  '';
+  String stringCode = '';
   otpIndexSetup(String text) {
-    if(otpIndex == 0)
-    otpIndex = 1;
-  else if(otpIndex < 6)
-    otpIndex++;
+    if (otpIndex == 0)
+      otpIndex = 1;
+    else if (otpIndex < 6) otpIndex++;
     setOtp(otpIndex, text);
-    currentOtp[otpIndex-1] = text;
+    currentOtp[otpIndex - 1] = text;
     String inputCode = "";
-    currentOtp.forEach((e){
+    currentOtp.forEach((e) {
       inputCode += e;
     });
     setState(() {
       stringCode = inputCode;
     });
-
-    if(otpIndex == 6){   
-      print('Inpit COde : '+inputCode);
-      print('stringCode: ' + stringCode);
-    }
   }
 
   setOtp(int n, String text) {
-    switch(n) {
+    switch (n) {
       case 1:
-      otpOneController.text = text; break;
+        otpOneController.text = text;
+        break;
       case 2:
-      otpTwoController.text = text; break;
+        otpTwoController.text = text;
+        break;
       case 3:
-      otpThreeController.text = text; break;
+        otpThreeController.text = text;
+        break;
       case 4:
-      otpFourController.text = text; break;
+        otpFourController.text = text;
+        break;
       case 5:
-      otpFiveController.text = text; break;
+        otpFiveController.text = text;
+        break;
       case 6:
-      otpSixController.text = text; break;
-
+        otpSixController.text = text;
+        break;
     }
   }
 
@@ -400,120 +396,126 @@ class _OtpScreenState extends State<OtpScreen>{
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         PINNumber(
-          outlineInputBorder : outlineInputBorder,
+          outlineInputBorder: outlineInputBorder,
           textEditingController: otpOneController,
-          ),
+        ),
         PINNumber(
-          outlineInputBorder : outlineInputBorder,
+          outlineInputBorder: outlineInputBorder,
           textEditingController: otpTwoController,
-          ),
+        ),
         PINNumber(
-          outlineInputBorder : outlineInputBorder,
+          outlineInputBorder: outlineInputBorder,
           textEditingController: otpThreeController,
-          ),
+        ),
         PINNumber(
-          outlineInputBorder : outlineInputBorder,
+          outlineInputBorder: outlineInputBorder,
           textEditingController: otpFourController,
-          ),
+        ),
         PINNumber(
-          outlineInputBorder : outlineInputBorder,
+          outlineInputBorder: outlineInputBorder,
           textEditingController: otpFiveController,
-          ),
+        ),
         PINNumber(
-          outlineInputBorder : outlineInputBorder,
+          outlineInputBorder: outlineInputBorder,
           textEditingController: otpSixController,
-          ),
+        ),
       ],
     );
   }
 
   buildTitleText() {
     return Text(
-      "Masukan kode verifikasi", 
-      style: TextStyle(color: Colors.black87,
-      fontSize: 21.0,
-      fontWeight: FontWeight.bold,  ),
-      );
-  }
-
-  buildDescriptionText() {
-      return Column(
-        children: <Widget>[
-          Text(
-            "Kode verifikasi telah dikirim pada", 
-                style: TextStyle(color: Colors.grey,
-                fontSize: 14.0, 
-                ),
-                textAlign: TextAlign.center,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                "nomor ", 
-                style: TextStyle(color: Colors.grey,
-                fontSize: 14.0, 
-                ),
-                textAlign: TextAlign.center,
-              ),
-              Text(_loginUser.user.no_telp==null?'':_loginUser.user.no_telp,
-                style: TextStyle(color: Color(0xff2968E2),
-                fontSize: 14.0, 
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          )
-        ],
+      "Masukan kode verifikasi",
+      style: TextStyle(
+        color: Colors.black87,
+        fontSize: 21.0,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
+  buildDescriptionText() {
+    return Column(
+      children: <Widget>[
+        Text(
+          "Kode verifikasi telah dikirim pada",
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 14.0,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              "nomor ",
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 14.0,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              _loginUser.user.no_telp == null ? '' : _loginUser.user.no_telp,
+              style: TextStyle(
+                color: Color(0xff2968E2),
+                fontSize: 14.0,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        )
+      ],
+    );
+  }
 
   buildSendOtpText() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Text(
-          "Tidak menerima OTP?", 
-          style: TextStyle(color: Colors.grey,
-          fontSize: 14.0, 
+          "Tidak menerima OTP?",
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 14.0,
           ),
         ),
         FlatButton(
-              onPressed: () {
-                _onVerifyCode();
-              },
-              child: Text(
-                'Kirim Ulang',
-                style: TextStyle(color: Colors.red, fontSize: 14.0, fontWeight: FontWeight.w600),
-                ),
-            ),
+          onPressed: () {
+            _onVerifyCode();
+          },
+          child: Text(
+            'Kirim Ulang',
+            style: TextStyle(
+                color: Colors.red, fontSize: 14.0, fontWeight: FontWeight.w600),
+          ),
+        ),
       ],
     );
   }
 
-
   buildButtonVerification() {
     return Center(
-            child: Material(
-            color: Color(0xff2968E2),
-            borderRadius: BorderRadius.circular(4.0),
-            elevation: 4.0,
-            child: MaterialButton(
-              minWidth: 280,
-              splashColor: Colors.transparent,  
-              highlightColor: Colors.transparent,
-              onPressed: _onFormSubmitted,
-              child: Text(
-                'Verifikasi',
-                style: TextStyle(
-                   color: Colors.white,
-                 ),),
-              ),
+      child: Material(
+        color: Color(0xff2968E2),
+        borderRadius: BorderRadius.circular(4.0),
+        elevation: 4.0,
+        child: MaterialButton(
+          minWidth: 280,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onPressed: _onFormSubmitted,
+          child: Text(
+            'Verifikasi',
+            style: TextStyle(
+              color: Colors.white,
             ),
-          );
+          ),
+        ),
+      ),
+    );
   }
-
 }
 
 class PINNumber extends StatelessWidget {
@@ -565,18 +567,19 @@ class KeyboardNumber extends StatelessWidget {
       child: MaterialButton(
         padding: EdgeInsets.all(8.0),
         onPressed: onPressed,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(50.0)
-        ),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
         height: 90.0,
-        child: Text("$n", textAlign: TextAlign.center, 
-        style: TextStyle(
-          fontSize: 24*MediaQuery.of(context).textScaleFactor,
-          color: Color(0xff2968E2),
-          fontWeight: FontWeight.bold,
-        ),),
+        child: Text(
+          "$n",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24 * MediaQuery.of(context).textScaleFactor,
+            color: Color(0xff2968E2),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
 }
-

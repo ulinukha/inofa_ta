@@ -29,33 +29,19 @@ class LoginUser{
 }
 
 class User{
-  final int id_pengguna;
-  final String id;
-  final String display_name;
-  final String profile_picture;
-  final String pendidikan;
-  final String email;
-  final String tgl_lahir;
-  final String website;
-  final String no_telp;
-  final String short_desc;
-  final int rating;
-  final String token;
+  final int id_pengguna;        final String id;
+  final String display_name;    final String profile_picture;
+  final String pendidikan;      final String email;
+  final String tgl_lahir;       final String website;
+  final String no_telp;         final String short_desc;
+  final int rating;             final String token;
   final int id_pendidikan;
 
   User({
-    this.id_pengguna,
-    this.id,
-    this.display_name,
-    this.profile_picture,
-    this.pendidikan,
-    this.email,
-    this.tgl_lahir,
-    this.website,
-    this.no_telp,
-    this.short_desc,
-    this.rating,
-    this.token,
+    this.id_pengguna,     this.id,          this.display_name,
+    this.profile_picture, this.pendidikan,  this.email,           
+    this.tgl_lahir,       this.website,     this.no_telp,
+    this.short_desc,      this.rating,      this.token,
     this.id_pendidikan
   });
 

@@ -56,7 +56,6 @@ class _RequstJoinState extends State<RequstJoin> {
   @override
   void initState() {
     _getKemampuanUser();
-    print(widget.dataReq.display_name.toString());
     super.initState();
   }
 
@@ -146,7 +145,6 @@ class _RequstJoinState extends State<RequstJoin> {
             ),
           ),
       ),
-
 
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

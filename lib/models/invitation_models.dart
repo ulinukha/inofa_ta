@@ -13,18 +13,10 @@ class ListInvitation{
   final String thumbnail;
 
   ListInvitation ({
-    this.id_subscription,
-    this.pengguna_id,
-    this.inovasi_id,
-    this.status,
-    this.join_by,
-    this.id_kategori,
-    this.kategori,
-    this.jumlah,
-    this.judul,
-    this.tagline,
-    this.description,
-    this.thumbnail
+    this.id_subscription, this.pengguna_id, this.inovasi_id,
+    this.status,          this.join_by,     this.id_kategori,
+    this.kategori,        this.jumlah,      this.judul,
+    this.tagline,         this.description, this.thumbnail
   });
 
   factory ListInvitation.fromJson(Map<String, dynamic> json){

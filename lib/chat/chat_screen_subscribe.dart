@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:inofa/chat/group_detail.dart';
+import 'package:inofa/chat/group_detail_subscribtion.dart';
 import 'package:inofa/models/chat_models.dart';
 import 'package:inofa/models/inovasi_models.dart';
 import 'package:flutter_socket_io/flutter_socket_io.dart';
@@ -11,14 +12,14 @@ import 'package:http/http.dart' as http;
 import 'package:inofa/api/api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreenSub extends StatefulWidget {
   final ListInovasi inovasis;
-  ChatScreen({Key key, this.inovasis}) : super(key: key);
+  ChatScreenSub({Key key, this.inovasis}) : super(key: key);
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _ChatScreenSubState createState() => _ChatScreenSubState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenSubState extends State<ChatScreenSub> {
   SocketIO socketIO;
   List<String> messages;
   List<String> userNames;
@@ -49,7 +50,7 @@ class _ChatScreenState extends State<ChatScreen> {
       loading = true;
     });
     final response = await http
-        .get(BaseUrl.getChat + widget.inovasis.id_inovasi.toString(), headers: {
+        .get(BaseUrl.getChat + widget.inovasis.inovasiId.toString(), headers: {
       'Authorization': 'Bearer ' + token,
     });
     final data = jsonDecode(response.body);
@@ -69,7 +70,7 @@ class _ChatScreenState extends State<ChatScreen> {
         },
         body: {
           "pengguna_id": _loginUser.user.id_pengguna.toString(),
-          "inovasi_id": widget.inovasis.id_inovasi.toString(),
+          "inovasi_id": widget.inovasis.inovasiId.toString(),
           "content": textController.text
         });
   }
@@ -146,8 +147,8 @@ class _ChatScreenState extends State<ChatScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  DetailGroup(inovasis: widget.inovasis, userData: _loginUser),
+              builder: (context) => DetailGroupSub(
+                  inovasis: widget.inovasis, userData: _loginUser),
             ),
           );
         },

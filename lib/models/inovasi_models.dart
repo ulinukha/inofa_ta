@@ -12,20 +12,12 @@ class ListInovasi{
   final int jumlah;
   final int inovasiId;
   bool isSelected=false;
-
+  
   ListInovasi({
-    this.id_inovasi,
-    this.pengguna_id,
-    this.display_name,
-    this.profile_picture,
-    this.judul,
-    this.tagline,
-    this.description,
-    this.thumbnail,
-    this.kategori,
-    this.created_at,
-    this.jumlah,
-    this.inovasiId
+    this.id_inovasi,       this.pengguna_id, this.display_name,
+    this.profile_picture,  this.judul,       this.tagline,
+    this.description,      this.thumbnail,    this.kategori,
+    this.created_at,       this.jumlah,       this.inovasiId
   });
 
   factory ListInovasi.fromJson(Map<String, dynamic> json){
@@ -44,5 +36,4 @@ class ListInovasi{
       inovasiId: json['inovasi_id']
     );
   }
-
 }

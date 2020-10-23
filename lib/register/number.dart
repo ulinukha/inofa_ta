@@ -37,7 +37,7 @@ class _NumberState extends State<Number>{
     body: {
       "no_telp" : numberControler.text,
     });
-    Navigator.pushNamed(context, '/Otp');
+    Navigator.pushReplacementNamed(context, '/Otp');
   }
 
   updateData()async{

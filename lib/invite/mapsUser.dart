@@ -13,10 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const double CAMERA_ZOOM = 15;
 const LatLng SOURCE_LOCATION = LatLng(42.747932,-71.167889);
-const LatLng DEST_LOCATION = LatLng(37.335685,-122.0605916);
-
-const String ANOTHER_USER = "37.335685,-122.0605916";
-
 
 class MapsUser extends StatefulWidget {
   final ListInovasi inovasis;
@@ -24,14 +20,11 @@ class MapsUser extends StatefulWidget {
   _MapsUserState createState() => _MapsUserState();
 }
 
-
 class _MapsUserState extends State<MapsUser> {
   Completer<GoogleMapController> _controller = Completer();
-
   LocationData currentLocation;
   Location location;
   var loading = false;
-  int userId=1;
 
   List <UserModels> _listUserModels = [];
   Future<String> _getListUser()async{
@@ -80,8 +73,6 @@ class _MapsUserState extends State<MapsUser> {
     currentLocation = await location.getLocation();
   }
 
-
-
   void updatePinOnMap() async {
     CameraPosition cPosition = CameraPosition(
       zoom: CAMERA_ZOOM,
@@ -111,11 +102,9 @@ class _MapsUserState extends State<MapsUser> {
 
   @override
   Widget build(BuildContext context) {
-
     CameraPosition initialCameraPosition = CameraPosition(
       zoom: CAMERA_ZOOM,
       target: SOURCE_LOCATION);
-
       if (currentLocation != null) {
         initialCameraPosition = CameraPosition(
           target: LatLng(currentLocation.latitude, currentLocation.longitude),
@@ -152,9 +141,7 @@ class _MapsUserState extends State<MapsUser> {
                     borderRadius: BorderRadius.circular(50.0)
                   ),
                   onPressed: () {
-                    Navigator.push(
-                      context, MaterialPageRoute(builder: (context)=>DetailGroup(inovasis: widget.inovasis),),
-                    );
+                    Navigator.pop(context);
                   },
                   child: Image.asset('images/Back.png', height: 40,
                   color: Color(0xff000000)),

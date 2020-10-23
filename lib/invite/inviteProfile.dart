@@ -84,7 +84,6 @@ class _InviteProfileState extends State<InviteProfile> {
       Container(
           padding: EdgeInsets.only(left: 24, right: 24, bottom: 5),
           child: Container(
-            
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,

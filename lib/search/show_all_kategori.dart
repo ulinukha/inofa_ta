@@ -2,30 +2,31 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:inofa/models/kategori_model.dart';
+import 'package:inofa/models/loginUser_models.dart';
 import 'package:inofa/search/search_kategori.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:inofa/api/api.dart';
 import 'package:http/http.dart' as http;
 
 class ShowAll extends StatefulWidget {
-  @override
+  final LoginUser userData;
+  ShowAll({Key key, this.userData}) : super(key: key);
   _ShowAllState createState() => _ShowAllState();
 }
 
 class _ShowAllState extends State<ShowAll> {
   List<ListKategori> _listKategori = [];
 
-  Future<Null> _getListKategori()async{
+  Future<Null> _getListKategori() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = prefs.getString('token');
-    final response = await http.get(BaseUrl.listKategori,
-    headers: {
-      'Authorization': 'Bearer '+ token,
+    final response = await http.get(BaseUrl.listKategori, headers: {
+      'Authorization': 'Bearer ' + token,
     });
     final dataKategori = jsonDecode(response.body);
-    if(this.mounted){
+    if (this.mounted) {
       setState(() {
-        for(Map i in dataKategori){
+        for (Map i in dataKategori) {
           _listKategori.add(ListKategori.fromJson(i));
         }
       });
@@ -49,8 +50,10 @@ class _ShowAllState extends State<ShowAll> {
         ),
         elevation: 4,
         centerTitle: true,
-        title: Text('Kategori', style: TextStyle(
-          color: Colors.black,
+        title: Text(
+          'Kategori',
+          style: TextStyle(
+            color: Colors.black,
           ),
         ),
       ),
@@ -62,35 +65,33 @@ class _ShowAllState extends State<ShowAll> {
           children: List.generate(_listKategori.length, (i) {
             return Container(
               child: InkWell(
-                onTap: (){
+                onTap: () {
                   Navigator.push(
-                  context, MaterialPageRoute(builder: (context)=>SearchKategori(inKategori: _listKategori[i]),
-                  ),
-                );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchKategori(
+                          inKategori: _listKategori[i],
+                          userData: widget.userData),
+                    ),
+                  );
                 },
                 child: Container(
-                  child: Center(
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          child: Material(
-                            child: Image.network(
-                                'https://www.gurupendidikan.co.id/wp-content/uploads/2019/11/Pengertian-Teknologi.jpg.webp',
-                                width: 75.0,
-                                height: 75.0,
-                                fit: BoxFit.cover,
-                              ),
-                              borderRadius: BorderRadius.all(Radius.circular(50.0)),
-                              clipBehavior: Clip.hardEdge,
-                          ),
+                    child: Center(
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        child: Image.network(
+                          _listKategori[i].kategori_thumbnail,
+                          width: 100.0,
                         ),
-                        SizedBox(height: 5),
-                        Text(_listKategori[i].kategori,
-                        style: TextStyle(fontSize: 14, color: Colors.black),)
-                      ],
-                    ),
-                  )
-                ),
+                      ),
+                      Text(
+                        _listKategori[i].kategori,
+                        style: TextStyle(fontSize: 14, color: Colors.black),
+                      )
+                    ],
+                  ),
+                )),
               ),
             );
           }),

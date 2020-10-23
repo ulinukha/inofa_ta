@@ -32,8 +32,6 @@ class _SignInState extends State<SignIn>{
     final FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
     print("signed in " + user.displayName);
     daftar(user.uid, user.displayName, user.photoUrl, user.email);
-    // Navigator.pushReplacementNamed(context, '/Number');
-    
     return user;
   }
 
@@ -77,12 +75,6 @@ class _SignInState extends State<SignIn>{
     }
   }
 
-  signOut() {
-    _googleSignIn.signOut();
-    _auth.signOut();
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,7 +92,7 @@ class _SignInState extends State<SignIn>{
             SizedBox(height: 30),
             Center(
               child: Text(
-              'Lorem Ipsum is simply dummy \ntext of the printing',
+              'Buat akunmu dan cari teman untuk \nmengembangkan inovasi yang kamu miliki.',
               style: TextStyle(fontSize: 16, height: 1.5, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
               ),
@@ -109,7 +101,7 @@ class _SignInState extends State<SignIn>{
           SizedBox(height: 10),
           Center(
             child: Text(
-            "Lorem Ipsum has been the industry's \nstandard dummy text ever since the 1500s",
+            "Kami akan menjaga segala informasi \npribadi yang anda miliki.",
             style: TextStyle(fontSize: 12, height: 1.5, color: Colors.black54),
             textAlign: TextAlign.center,
           ),
