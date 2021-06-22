@@ -1,6 +1,7 @@
 # inofa
 
 A new Flutter project.
+app overview : http://bit.ly/VideoInofa
 
 ## Getting Started
 
