@@ -1,17 +1,10 @@
 # inofa
-
-A new Flutter project.
 app overview : http://bit.ly/VideoInofa
 
-## Getting Started
+view app : 
+![verification](https://user-images.githubusercontent.com/52144681/127264777-83da94da-7780-43ca-8e00-ca81a33b0aaa.jpeg)
+![home_page](https://user-images.githubusercontent.com/52144681/127264785-ecb55cfb-49b5-4715-8ac7-f821b77db2f5.jpeg)
+![login_2](https://user-images.githubusercontent.com/52144681/127264794-85aca898-f27c-4216-827e-f0da67416a3f.jpeg)
+![chat_room](https://user-images.githubusercontent.com/52144681/127264810-8c916e27-d0ff-49f5-b70f-926a080ae724.jpeg)
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
